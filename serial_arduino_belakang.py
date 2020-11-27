@@ -4,6 +4,9 @@ import serial
 
 default_num = 10000
 
+data = [0, 0, default_num, default_num, default_num]
+x_encoder = 0
+enc_pos = 0
 us_kiri_blk = default_num
 us_tengah_blk = default_num
 us_kanan_blk = default_num
@@ -29,53 +32,33 @@ while True:
     datasplit_belakang = read_belakang.decode('utf-8', 'ignore').strip('\r\n').strip().split(',')
 
     #print(datasplit_belakang)
-
     # pemisahan data:
+    k = len(datasplit_belakang)
+    
+    #detect and correction if data can't read
+    #read data = k
+    #non-read data = j
+    j = 5 - k
+    
+    #print read data with their value
+    for i in range(k):
+        if datasplit_belakang[i] != '':
+            data[i] = int (datasplit_belakang[i])
+        #if datasplit_arduino[i] == '':
+        #    data[i] = default_num
+    
+    #print non-read data with default_num
+    #for h in range(j):
+    #   data[h+k] = default_num
+    
+    print(data)
 
-    # banyak data (harusnya 3, tapi terkadang hanya 2 atau 1)
-
-    # us_belakang
-    if len(datasplit_belakang) == 3:
-        if datasplit_belakang[0] != '':
-            us_kiri_blk = int(datasplit_belakang[0])
-        if datasplit_belakang[0] == '':
-            us_kiri_blk = default_num
-        if datasplit_belakang[1] !='':
-            us_tengah_blk = int(datasplit_belakang[1])
-        if datasplit_belakang[1] =='':
-            us_tengah_blk = default_num
-        if datasplit_belakang[2] !='':
-            us_kanan_blk = int(datasplit_belakang[2])
-        if datasplit_belakang[2] == '':
-            us_kanan_blk = default_num
-        
-    if len(datasplit_belakang) == 2:
-        if datasplit_belakang[0] != '':
-            us_kiri_blk = int(datasplit_belakang[0])
-        if datasplit_belakang[0] == '':
-            us_kiri_blk = default_num
-        if datasplit_belakang[1] !='':
-            us_tengah_blk = int(datasplit_belakang[1])
-        if datasplit_belakang[1] =='':
-            us_tengah_blk = default_num
-        us_kanan_blk = default_num
-
-    if len(datasplit_belakang) == 1:
-        if datasplit_belakang[0] != '':
-            us_kiri_blk = int(datasplit_belakang[0])
-        if datasplit_belakang[0] == '':
-            us_kiri_blk = default_num
-        us_tengah_blk = default_num
-        us_kanan_blk = default_num
-        
-    if len(datasplit_belakang) == 0:
-        us_kiri_blk = default_num
-        us_tengah_blk = default_num
-        us_kanan_blk = default_num
-
-    #save variable files
-    f = open("data_serial_belakang.txt","w")
-    f.write("%d \r\n" %us_kiri_blk)
-    f.write("%d \r\n" %us_tengah_blk)
-    f.write("%d \r\n" %us_kanan_blk)
-    f.close()
+    #save variable files (apabila data tidak kosong)--> dispaly
+    if j != 0:
+        f = open("data_serial_belakang.txt","w")
+        f.write("%d \r\n" %data[0]) #x_enc
+        f.write("%d \r\n" %data[1]) #enc_pos
+        f.write("%d \r\n" %data[2]) #us_kiri_blk
+        f.write("%d \r\n" %data[3]) #us_tengah_blk
+        f.write("%d \r\n" %data[4]) #us_kanan_blk
+        f.close()
