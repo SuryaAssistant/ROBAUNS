@@ -118,6 +118,7 @@ width_camera_only = 800
 
 # mengitung waktu untuk membaca serial arduino
 counter_us_dpn = 0
+#pemanggilan serial
 subprocess.Popen(["python3", "serial_arduino_depan.py"], stdout=PIPE, stderr=PIPE)
 subprocess.Popen(["python3", "serial_arduino_belakang.py"], stdout=PIPE, stderr=PIPE)
 
@@ -134,93 +135,65 @@ while(True):
     frame_copy = imutils.resize(frame, width = 800)
     camera_only_frame = imutils.resize(frame, width = width_camera_only)
 
-    if counter_us_dpn == 5:
-        # call serial_communication
-            
+    if counter_us_dpn == 5:            
         # read stored variable value in data_serial_depan.txt
         with open("data_serial_depan.txt", "r",encoding="utf-8") as g:
             data_serial_depan = list(map(int, g.readlines()))
-            
-        # get variable value from data_serial.txt
-        if len(data_serial_depan) == 3:
-            if data_serial_depan[0] != '':
-                us_kiri_dpn = data_serial_depan[0]#serial_arduino.us_kiri_dpn#
-            if data_serial_depan[0] == '':
-                us_kiri_dpn = default_num
-            if data_serial_depan[1] != '':
-                us_tengah_dpn = data_serial_depan[1]#serial_arduino.us_tengah_dpn
-            if data_serial_depan[1] == '':
-                us_tengah_dpn = default_num
-            if data_serial_depan[2] != '':
-                us_kanan_dpn = data_serial_depan[2]#serial_arduino.us_kanan_dpn
-            if data_serial_depan[2] == '':
-                us_kanan_dpn = default_num
+            # pemisahan data:
+            k = len(data_serial_depan)
 
-        if len(data_serial_depan) == 2:
-            if data_serial_depan[0] != '':
-                us_kiri_dpn = data_serial_depan[0]#serial_arduino.us_kiri_dpn#
-            if data_serial_depan[0] == '':
-                us_kiri_dpn = default_num
-            if data_serial_depan[1] != '':
-                us_tengah_dpn = data_serial_depan[1]#serial_arduino.us_tengah_dpn
-            if data_serial_depan[1] == '':
-                us_tengah_dpn = default_num
-            us_kanan_dpn = default_num
+            #detect and correction if data can't read
+            #read data depan = k
+            #non-read data depan = j
+            j = 5 - k
 
-        if len(data_serial_depan) == 1:
-            if data_serial_depan[0] != '':
-                us_kiri_dpn = data_serial_depan[0]#serial_arduino.us_kiri_dpn#
-            if data_serial_depan[0] == '':
-                us_kiri_dpn = default_num
-            us_tengah_dpn = default_num
-            us_kanan_dpn = default_num
-            
-        if len(data_serial_depan) == 0:
-            us_kiri_dpn = default_num
-            us_tengah_dpn = default_num
-            us_kanan_dpn = default_num
+            #print read data with their value
+            for i in range(k):
+                if data_serial_depan[i] != '':
+                    data_depan[i] = int (data_serial_depan[i])
+                #if datasplit_arduino[i] == '':
+                #    data[i] = default_num
+
+            #print non-read data with default_num
+            #for h in range(j):
+            #   data[h+k] = default_num
+
+            #print(data)
+            if j != 0:
+                x_enc = data_depan[0]
+                enc_pos = data_depan[1]
+                us_kiri_dpn = data_depan[2]
+                us_tengah_dpn = data_depan[3]
+                us_kanan_dpn = data_depan[4]
+
                         
         with open("data_serial_belakang.txt", "r", encoding = "utf-8") as h:
             data_serial_belakang = list(map(int, h.readlines()))
-        # get variable value from data_serial.txt
         
-        if len(data_serial_belakang) == 3:
-            if data_serial_belakang[0] != '':
-                us_kiri_blk = data_serial_belakang[0]#serial_arduino.us_kiri_blk#
-            if data_serial_belakang[0] == '':
-                us_kiri_blk = default_num
-            if data_serial_belakang[1] != '':
-                us_tengah_blk = data_serial_belakang[1]#serial_arduino.us_tengah_blk
-            if data_serial_belakang[1] == '':
-                us_tengah_blk = default_num
-            if data_serial_belakang[2] != '':
-                us_kanan_blk = data_serial_belakang[2]#serial_arduino.us_kanan_blk
-            if data_serial_belakang[2] == '':
-                us_kanan_blk = default_num
+            # pemisahan data:
+            m = len(data_serial_belakang)
 
-        if len(data_serial_belakang) == 2:
-            if data_serial_belakang[0] != '':
-                us_kiri_blk = data_serial_belakang[0]#serial_arduino.us_kiri_blk#
-            if data_serial_belakang[0] == '':
-                us_kiri_blk = default_num
-            if data_serial_belakang[1] != '':
-                us_tengah_blk = data_serial_belakang[1]#serial_arduino.us_tengah_blk
-            if data_serial_belakang[1] == '':
-                us_tengah_blk = default_num
-            us_kanan_blk = default_num
+            #detect and correction if data can't read
+            #read data depan = m
+            #non-read data depan = n
+            n = 5 - m
 
-        if len(data_serial_belakang) == 1:
-            if data_serial_belakang[0] != '':
-                us_kiri_blk = data_serial_belakang[0]#serial_arduino.us_kiri_blk#
-            if data_serial_belakang[0] == '':
-                us_kiri_blk = default_num
-            us_tengah_blk = default_num
-            us_kanan_blk = default_num
-            
-        if len(data_serial_belakang) == 0:
-            us_kiri_blk = default_num
-            us_tengah_blk = default_num
-            us_kanan_blk = default_num
+            #print read data with their value
+            for l in range(m):
+                if data_serial_belakang[l] != '':
+                    data_depan[l] = int (data_serial_belakang[l])
+                #if datasplit_arduino[l] == '':
+                #    data[l] = default_num
+
+            #print non-read data with default_num
+            #for h in range(j):
+            #   data[h+k] = default_num
+
+            #print(data)
+            if n != 0:
+                us_kiri_blk = data_belakang[0]
+                us_tengah_blk = data_belakang[1]
+                us_kanan_blk = data_belakang[2]
         
         # Kondisi di layar
         # us_depan
