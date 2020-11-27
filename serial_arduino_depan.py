@@ -35,7 +35,7 @@ while 1:
 
     #print(datasplit_depan)
     # pemisahan data:
-    k = len(datasplit_arduino)
+    k = len(datasplit_depan)
     
     #detect and correction if data can't read
     #read data = k
@@ -44,8 +44,8 @@ while 1:
     
     #print read data with their value
     for i in range(k):
-        if datasplit_arduino[i] != '':
-            data[i] = int (datasplit_arduino[i])
+        if datasplit_depan[i] != '':
+            data[i] = int (datasplit_depan[i])
         #if datasplit_arduino[i] == '':
         #    data[i] = default_num
     
