@@ -58,7 +58,14 @@ while True:
         f = open("data_serial_belakang.txt","w")
         f.write("%d \r\n" %data[0]) #x_enc
         f.write("%d \r\n" %data[1]) #enc_pos
+        #avoiding 0 value in ultrasonic sensor
+        if(data[2] == 0) :
+          data[2] = default_num
         f.write("%d \r\n" %data[2]) #us_kiri_blk
+          if(data[3] == 0) :
+          data[3] = default_num
         f.write("%d \r\n" %data[3]) #us_tengah_blk
+          if(data[4] == 0) :
+          data[4] = default_num
         f.write("%d \r\n" %data[4]) #us_kanan_blk
         f.close()
