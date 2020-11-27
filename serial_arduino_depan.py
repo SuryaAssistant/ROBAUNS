@@ -4,6 +4,9 @@ import serial
 
 default_num = 10000
 
+data = [0, 0, default_num, default_num, default_num]
+x_encoder = 0
+enc_pos = 0
 us_kiri_dpn = default_num
 us_tengah_dpn = default_num
 us_kanan_dpn = default_num
@@ -32,51 +35,32 @@ while 1:
 
     #print(datasplit_depan)
     # pemisahan data:
+    k = len(datasplit_arduino)
+    
+    #detect and correction if data can't read
+    #read data = k
+    #non-read data = j
+    j = 5 - k
+    
+    #print read data with their value
+    for i in range(k):
+        if datasplit_arduino[i] != '':
+            data[i] = int (datasplit_arduino[i])
+        #if datasplit_arduino[i] == '':
+        #    data[i] = default_num
+    
+    #print non-read data with default_num
+    #for h in range(j):
+    #   data[h+k] = default_num
+    
+    print(data)
 
-    # banyak data (harusnya 3, tapi terkadang hanya 2 atau 1)
-    # us_depan
-
-    if len(datasplit_depan) == 3:
-        if datasplit_depan[0] != '':
-            us_kiri_dpn = int(datasplit_depan[0])
-        if datasplit_depan[0] == '':
-            us_kiri_dpn = default_num
-        if datasplit_depan[1] !='':
-            us_tengah_dpn = int(datasplit_depan[1])
-        if datasplit_depan[1] =='':
-            us_tengah_dpn = default_num
-        if datasplit_depan[2] !='':
-            us_kanan_dpn = int(datasplit_depan[2])
-        if datasplit_depan[2] == '':
-            us_kanan_dpn = default_num
-        
-    if len(datasplit_depan) == 2:
-        if datasplit_depan[0] != '':
-            us_kiri_dpn = int(datasplit_depan[0])
-        if datasplit_depan[0] == '':
-            us_kiri_dpn = default_num
-        if datasplit_depan[1] !='':
-            us_tengah_dpn = int(datasplit_depan[1])
-        if datasplit_depan[1] =='':
-            us_tengah_dpn = default_num
-        us_kanan_dpn = default_num
-
-    if len(datasplit_depan) == 1:
-        if datasplit_depan[0] != '':
-            us_kiri_dpn = int(datasplit_depan[0])
-        if datasplit_depan[0] == '':
-            us_kiri_dpn = default_num
-        us_tengah_dpn = default_num
-        us_kanan_dpn = default_num
-        
-    if len(datasplit_depan) == 0:
-        us_kiri_dpn = default_num
-        us_tengah_dpn = default_num
-        us_kanan_dpn = default_num
-        
-    #save variable files
-    f = open("data_serial_depan.txt","w")
-    f.write("%d \r\n" %us_kiri_dpn)
-    f.write("%d \r\n" %us_tengah_dpn)
-    f.write("%d \r\n" %us_kanan_dpn)
-    f.close()
+    #save variable files (apabila data tidak kosong)--> dispaly
+    if j != 0:
+        f = open("data_serial_depan.txt","w")
+        f.write("%d \r\n" %data[0]) #x_enc
+        f.write("%d \r\n" %data[1]) #enc_pos
+        f.write("%d \r\n" %data[2]) #us_kiri_dpn
+        f.write("%d \r\n" %data[3]) #us_tengah_dpn
+        f.write("%d \r\n" %data[4]) #us_kanan_dpn
+        f.close()
