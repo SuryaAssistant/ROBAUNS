@@ -41,6 +41,16 @@ print("Start")
 #------------------------------Function------------------------------#
 
 # define for calling script
+def kamera_kanan():
+    p_cam_kanan=subprocess.Popen(["python3", "kamera_kanan.py"], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = p_cam_kanan.communicate()
+    print(stdout)
+    
+def kamera_kiri():
+    p_cam_kiri=subprocess.Popen(["python3", "kamera_kiri.py"], stdout=PIPE, stderr=PIPE)
+    stdout, stderr = p_cam_kiri.communicate()
+    print(stdout)
+
 def kanan():
     p_kanan=subprocess.Popen(["python3", "kontrol_motor_kanan.py"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = p_kanan.communicate()
@@ -316,14 +326,10 @@ while(True):
         status_x = "diam"
 
     if key == ord("o"):
-        p.ChangeDutyCycle(5)
-        time.sleep(0.05)
-        p.ChangeDutyCycle(0)
+        kamera_kiri()
         
     if key == ord("p"):
-        p.ChangeDutyCycle(10)
-        time.sleep(0.05)
-        p.ChangeDutyCycle(0)
+        kamera_kanan()
         
     if key == ord("m"): #buka pintu
         buka_pintu()
