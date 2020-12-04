@@ -1,3 +1,6 @@
+#! /usr/bin/python3
+
+
 from __future__ import print_function
 #for Videostream
 import imutils
@@ -18,6 +21,8 @@ import serial
 #for call other script in 'background'
 import subprocess
 from subprocess import Popen, PIPE
+#get time
+import datetime
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -42,42 +47,42 @@ print("Start")
 
 # define for calling script
 def kamera_kanan():
-    p_cam_kanan=subprocess.Popen(["python3", "kamera_kanan.py"], stdout=PIPE, stderr=PIPE)
+    p_cam_kanan=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/kamera_kanan.py"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = p_cam_kanan.communicate()
     print(stdout)
     
 def kamera_kiri():
-    p_cam_kiri=subprocess.Popen(["python3", "kamera_kiri.py"], stdout=PIPE, stderr=PIPE)
+    p_cam_kiri=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/kamera_kiri.py"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = p_cam_kiri.communicate()
     print(stdout)
 
 def kanan():
-    p_kanan=subprocess.Popen(["python3", "kontrol_motor_kanan.py"], stdout=PIPE, stderr=PIPE)
+    p_kanan=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/kontrol_motor_kanan.py"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = p_kanan.communicate()
     print(stdout)
     
 def kiri():
-    p_kiri=subprocess.Popen(["python3", "kontrol_motor_kiri.py"], stdout=PIPE, stderr=PIPE)
+    p_kiri=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/kontrol_motor_kiri.py"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = p_kiri.communicate()
     print(stdout)
 
 def mundur():
-    p_mundur=subprocess.Popen(["python3", "kontrol_motor_mundur.py"], stdout=PIPE, stderr=PIPE)
+    p_mundur=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/kontrol_motor_mundur.py"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = p_mundur.communicate()
     print(stdout)
     
 def maju():
-    p_maju=subprocess.Popen(["python3", "kontrol_motor_maju.py"], stdout=PIPE, stderr=PIPE)
+    p_maju=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/kontrol_motor_maju.py"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = p_maju.communicate()
     print(stdout)
     
 def diam():
-    p_diam=subprocess.Popen(["python3", "kontrol_motor_diam.py"], stdout=PIPE, stderr=PIPE)
+    p_diam=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/kontrol_motor_diam.py"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = p_diam.communicate()
     print(stdout)
 
 def buka_pintu():
-    p=subprocess.Popen(["python3", "IR_Transmit.py"], stdout=PIPE, stderr=PIPE)
+    p=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/IR_Transmit.py"], stdout=PIPE, stderr=PIPE)
     stdout, stderr = p.communicate()
     print(stdout)
 
@@ -90,8 +95,8 @@ ap.add_argument("-o", "--output", type=str, default="barcodes.csv",
 args = vars(ap.parse_args())
 
 # start video stream
-vs = WebcamVideoStream(src=1).start()
-
+vs = WebcamVideoStream(src=0).start()
+#vs = cv2.VideoCapture(1)
 print("[INFO] starting video stream...")
 
 # waktu bagi kamera untuk melakukan "pemanasan"
@@ -123,31 +128,44 @@ us_tengah_blk = default_num
 us_kanan_blk = default_num
 
 encoder_dpn = 0
-width_camera_only = 800
+
+
+width_camera_only = 700
+height_camera_only = int((width_camera_only/1280)*720)
+
+width_camera_status = 600
+
+width_camera_copy = 800
+height_camera_copy = int((width_camera_copy/1280)*720)
+
+data_depan = [0, 0, default_num, default_num, default_num]
+data_belakang = [default_num, default_num, default_num]
+
+
 #---------------------------Operation Code---------------------------#
 
 # mengitung waktu untuk membaca serial arduino
 counter_us_dpn = 0
 #pemanggilan serial
-subprocess.Popen(["python3", "serial_arduino_depan.py"], stdout=PIPE, stderr=PIPE)
-subprocess.Popen(["python3", "serial_arduino_belakang.py"], stdout=PIPE, stderr=PIPE)
+subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/serial_arduino_depan.py"], stdout=PIPE, stderr=PIPE)
+subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/serial_arduino_belakang.py"], stdout=PIPE, stderr=PIPE)
 
 while(True):
 
     # Membaca kamera
     # mengambil frame
-    frame = vs.read()
+    frame = vs.read() #gambar asli
     
     # resize for real frame (detection)
-    frame = imutils.resize(frame, width=400)
+    frame = imutils.resize(frame, width=720)
     
     # resize from real
-    frame_copy = imutils.resize(frame, width = 800)
+    frame_copy = imutils.resize(frame, width = width_camera_copy)
     camera_only_frame = imutils.resize(frame, width = width_camera_only)
 
     if counter_us_dpn == 5:            
         # read stored variable value in data_serial_depan.txt
-        with open("data_serial_depan.txt", "r",encoding="utf-8") as g:
+        with open("/home/pi/RoboCov19UNS/data_serial_depan.txt", "r",encoding="utf-8") as g:
             data_serial_depan = list(map(int, g.readlines()))
             # pemisahan data:
             k = len(data_serial_depan)
@@ -177,7 +195,7 @@ while(True):
                 us_kanan_dpn = data_depan[4]
 
                         
-        with open("data_serial_belakang.txt", "r", encoding = "utf-8") as h:
+        with open("/home/pi/RoboCov19UNS/data_serial_belakang.txt", "r", encoding = "utf-8") as h:
             data_serial_belakang = list(map(int, h.readlines()))
         
             # pemisahan data:
@@ -191,7 +209,7 @@ while(True):
             #print read data with their value
             for l in range(m):
                 if data_serial_belakang[l] != '':
-                    data_depan[l] = int (data_serial_belakang[l])
+                    data_belakang[l] = int (data_serial_belakang[l])
                 #if datasplit_arduino[l] == '':
                 #    data[l] = default_num
 
@@ -260,33 +278,36 @@ while(True):
     cv2.putText(frame_copy,'{}'.format(us_kanan_dpn),(700,15), font, 0.6,(255,255,255),2,cv2.LINE_AA)
 
     # status_us_belakang
-    cv2.rectangle(frame_copy,(0, 590),(300, 600),us_b_kiri,20)
-    cv2.rectangle(frame_copy,(500, 590),(800, 600),us_b_kanan,20)
-    cv2.rectangle(frame_copy,(400-150, 580),(400+150, 600),us_b_tengah,30)
-    cv2.putText(frame_copy,'{}'.format(us_kiri_blk),(50,595), font, 0.6,(255,255,255),2,cv2.LINE_AA)
-    cv2.putText(frame_copy,'{}'.format(us_tengah_blk),(385,585), font, 0.6,(255,255,255),2,cv2.LINE_AA)
-    cv2.putText(frame_copy,'{}'.format(us_kanan_blk),(700,595), font, 0.6,(255,255,255),2,cv2.LINE_AA)
+    cv2.rectangle(frame_copy,(0, height_camera_copy-10),(300, height_camera_copy),us_b_kiri,20)
+    cv2.rectangle(frame_copy,(500, height_camera_copy-10),(800, height_camera_copy),us_b_kanan,20)
+    cv2.rectangle(frame_copy,(400-150, height_camera_copy-20),(400+150, height_camera_copy),us_b_tengah,30)
+    cv2.putText(frame_copy,'{}'.format(us_kiri_blk),(50,height_camera_copy-5), font, 0.6,(255,255,255),2,cv2.LINE_AA)
+    cv2.putText(frame_copy,'{}'.format(us_tengah_blk),(385,height_camera_copy-15), font, 0.6,(255,255,255),2,cv2.LINE_AA)
+    cv2.putText(frame_copy,'{}'.format(us_kanan_blk),(700,height_camera_copy-5), font, 0.6,(255,255,255),2,cv2.LINE_AA)
     
     cv2.putText(frame_copy,'Robot {}'.format(status_jalan),(10,50), font, 0.6,(255,255,255),1,cv2.LINE_AA)
     #cv2.putText(frame_copy,'Encoder {}'.format(encoder_dpn),(10,70), font, 0.6,(255,255,255),1,cv2.LINE_AA)
     
     # info tab
-    cv2.putText(camera_only_frame,'Q ~ keluar dari program',(10,600-10), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-    cv2.putText(camera_only_frame,'W ~ maju',(10,600-150), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-    cv2.putText(camera_only_frame,'S ~ mundur',(10,600 - 130), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-    cv2.putText(camera_only_frame,'A ~ belok kiri',(10,600 - 110), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-    cv2.putText(camera_only_frame,'D ~ belok kanan',(10, 600 - 90), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-    cv2.putText(camera_only_frame,'X ~ berhenti',(10, 600 - 70), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-    cv2.putText(camera_only_frame,'O ~ kamera kiri',(10, 600 - 50), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-    cv2.putText(camera_only_frame,'P ~ kamera kanan',(10, 600 - 30), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(camera_only_frame,'W ~ Maju',(10,height_camera_only-150), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(camera_only_frame,'S ~ Mundur',(10,height_camera_only - 130), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(camera_only_frame,'A ~ Belok kiri',(10,height_camera_only - 110), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(camera_only_frame,'D ~ Belok kanan',(10, height_camera_only - 90), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(camera_only_frame,'X ~ Berhenti',(10, height_camera_only - 70), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(camera_only_frame,'O ~ Kamera kiri',(10, height_camera_only - 50), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(camera_only_frame,'P ~ Kamera kanan',(10, height_camera_only - 30), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(camera_only_frame,'Q ~ Exit',(10, height_camera_only -10), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+
+    cv2.putText(camera_only_frame,'M ~ Buka pintu',(width_camera_only-155, height_camera_only-30), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(camera_only_frame,'{}'.format(datetime.datetime.now()),(width_camera_only - 222, height_camera_only -10), font, 0.6,(255,255,255),1,cv2.LINE_AA)
 
     cv2.putText(frame_copy,'{}'.format(counter_us_dpn),(775,50), font, 0.5,(255,255,255),1,cv2.LINE_AA)
 
     #create black image for 'debugging'
-    img = np.zeros((300,500,3), np.uint8)
-    cv2.putText(img,"Status Gerak : {}".format(status_x),(10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5,(255,255,255),2,cv2.LINE_AA)
-    cv2.putText(img,"Depan        : {} | {} | {}".format(us_kiri_dpn, us_tengah_dpn, us_kanan_dpn),(10,40), cv2.FONT_HERSHEY_SIMPLEX, 0.5,(255,255,255),2,cv2.LINE_AA)
-    cv2.putText(img,"Belakang     : {} | {} | {}".format(us_kiri_blk, us_tengah_blk, us_kanan_blk),(10,60), cv2.FONT_HERSHEY_SIMPLEX, 0.5,(255,255,255),2,cv2.LINE_AA)
+    #img = np.zeros((300,500,3), np.uint8)
+    #cv2.putText(img,"Status Gerak : {}".format(status_x),(10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5,(255,255,255),2,cv2.LINE_AA)
+    #cv2.putText(img,"Depan        : {} | {} | {}".format(us_kiri_dpn, us_tengah_dpn, us_kanan_dpn),(10,40), cv2.FONT_HERSHEY_SIMPLEX, 0.5,(255,255,255),2,cv2.LINE_AA)
+    #cv2.putText(img,"Belakang     : {} | {} | {}".format(us_kiri_blk, us_tengah_blk, us_kanan_blk),(10,60), cv2.FONT_HERSHEY_SIMPLEX, 0.5,(255,255,255),2,cv2.LINE_AA)
 
 
     # show image
@@ -295,14 +316,14 @@ while(True):
     #cv2.imshow("Copy", frame_copy)
     
     # hanya tangkapan kamera
-    #cv2.imshow("Kamera", camera_only_frame)
+    cv2.imshow("Kamera", camera_only_frame)
     
-    # Pengecilan 2x dari "Frame asli"
-    status_frame = imutils.resize(frame_copy, width=400)
-    cv2.imshow("Status", status_frame)
+    # Pengecilan 2x dari "Frame asli" (width=400)
+    status_frame = imutils.resize(frame_copy, width=width_camera_status)
+    #cv2.imshow("Status", status_frame)
     
     # Window for status etc
-    cv2.imshow("Shell", img)
+    #cv2.imshow("Shell", img)
     
     # menambah counter
     counter_us_dpn = counter_us_dpn+1

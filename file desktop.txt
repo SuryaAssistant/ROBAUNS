@@ -1,0 +1,10 @@
+#Simpan file dengan nama RoboCov - Manual.desktop
+
+[Desktop Entry]
+Name=Robocov - Manual
+Comment=Program RoboCov secara manual
+Icon=/home/pi/RoboCov19UNS/Logo_UNS_1.png
+Exec= /usr/bin/python3 /home/pi/RoboCov19UNS/kontrol_motor_tanpa_qr.py
+Type=Application
+Encoding=UTF-8
+Terminal=True
