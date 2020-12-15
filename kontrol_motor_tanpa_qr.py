@@ -30,11 +30,11 @@ GPIO.setwarnings(False)
 #-----------------------------Pin Config-----------------------------#
 
 #------------------SERVO------------------#
-servoPIN = 18
-GPIO.setup(servoPIN, GPIO.OUT)
-p = GPIO.PWM(servoPIN, 50) # GPIO 17 for PWM with 50Hz
-p.start(0)
-p.ChangeDutyCycle(0)
+#servoPIN = 18
+#GPIO.setup(servoPIN, GPIO.OUT)
+#p = GPIO.PWM(servoPIN, 50) # GPIO 17 for PWM with 50Hz
+#p.start(0)
+#p.ChangeDutyCycle(0)
 
 #---------------Encoder_pins---------------#
 
@@ -97,7 +97,7 @@ args = vars(ap.parse_args())
 # start video stream
 vs = WebcamVideoStream(src=0).start()
 #vs = cv2.VideoCapture(1)
-print("[INFO] starting video stream...")
+print("Mengaktifkan kamera ...")
 
 # waktu bagi kamera untuk melakukan "pemanasan"
 sleep(2.0)
@@ -303,13 +303,6 @@ while(True):
 
     cv2.putText(frame_copy,'{}'.format(counter_us_dpn),(775,50), font, 0.5,(255,255,255),1,cv2.LINE_AA)
 
-    #create black image for 'debugging'
-    #img = np.zeros((300,500,3), np.uint8)
-    #cv2.putText(img,"Status Gerak : {}".format(status_x),(10,20), cv2.FONT_HERSHEY_SIMPLEX, 0.5,(255,255,255),2,cv2.LINE_AA)
-    #cv2.putText(img,"Depan        : {} | {} | {}".format(us_kiri_dpn, us_tengah_dpn, us_kanan_dpn),(10,40), cv2.FONT_HERSHEY_SIMPLEX, 0.5,(255,255,255),2,cv2.LINE_AA)
-    #cv2.putText(img,"Belakang     : {} | {} | {}".format(us_kiri_blk, us_tengah_blk, us_kanan_blk),(10,60), cv2.FONT_HERSHEY_SIMPLEX, 0.5,(255,255,255),2,cv2.LINE_AA)
-
-
     # show image
     # Frame asli
     #cv2.imshow("Frame", frame)
@@ -321,9 +314,6 @@ while(True):
     # Pengecilan 2x dari "Frame asli" (width=400)
     status_frame = imutils.resize(frame_copy, width=width_camera_status)
     #cv2.imshow("Status", status_frame)
-    
-    # Window for status etc
-    #cv2.imshow("Shell", img)
     
     # menambah counter
     counter_us_dpn = counter_us_dpn+1
@@ -358,7 +348,7 @@ while(True):
     if key == ord("q"):
         break
 
-print("[INFO] cleaning up...")
+print("Menutup Aplikasi ...")
 cv2.destroyAllWindows()
 vs.stop()
 

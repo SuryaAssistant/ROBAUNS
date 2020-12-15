@@ -1,0 +1,6 @@
+mtr_dpn_en_r = 20
+mtr_dpn_en_l = 26
+mtr_blkg_en_r = 16
+mtr_blkg_en_l = 19
+kamera_kanan_pin = 13
+kamera_kiri_pin = 6
