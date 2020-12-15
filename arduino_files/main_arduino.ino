@@ -15,7 +15,7 @@
 //Motor Belakang
 #define blkg_RPWM 6 
 #define blkg_EN 8 
-#define blkg_LPWM 9 
+#define blkg_LPWM 9
 
 //Input Raspi
 #define in_dpn_R 2
@@ -35,8 +35,8 @@ int i;
 const int hall_sensor =  A0;
 
 //kamera
-const int kamera_kanan = A1;
-const int kamera_kiri = A2;
+const int kamera_kanan = A1; //GPIO13
+const int kamera_kiri = A2; //GPIO6
 
 int kamera_posisi = 90;
 
@@ -56,6 +56,10 @@ void setup() {
   pinMode(battery_input_pin, INPUT);
 
   //Setting Mode Pin
+  pinMode(A4, OUTPUT);
+  pinMode(A5, OUTPUT);
+
+  
   pinMode(dpn_RPWM, OUTPUT);
   pinMode(dpn_EN, OUTPUT);
   pinMode(dpn_LPWM, OUTPUT);
@@ -84,6 +88,9 @@ void setup() {
   digitalWrite(blkg_EN, LOW);
   analogWrite(blkg_RPWM, 0);
   analogWrite(blkg_LPWM, 0);
+
+  digitalWrite(A4, HIGH);
+  digitalWrite(A5, HIGH);
 
   delay(1000);
 }
@@ -153,6 +160,12 @@ void loop() {
   //Konversi ADC ke nilai tegangan
 
 //-------------------------Motor------------------
+  if(status_kanan == HIGH){
+    kanan();
+  }
+  if(status_kiri == HIGH){
+    kiri();
+  }  
   if(status_kanan == LOW && status_kiri == LOW){
     dpn_diam();
   }
@@ -172,6 +185,14 @@ void loop() {
   if(status_auto_stop == HIGH){
     blkg_diam();
   }
+
+  Serial.print(digitalRead(2));
+    Serial.print("         ");
+  Serial.print(digitalRead(11));
+    Serial.print("         ");
+  Serial.print(digitalRead(12));
+    Serial.print("         ");
+  Serial.println(digitalRead(13));
 }
 
 /*
@@ -179,14 +200,14 @@ void loop() {
  */
 void kanan(){
   digitalWrite(dpn_EN, HIGH);
-  analogWrite(dpn_RPWM, 100);
+  analogWrite(dpn_RPWM, 125);
   analogWrite(dpn_LPWM, 0);
 }
 
 void kiri(){
   digitalWrite(dpn_EN, HIGH);
   analogWrite(dpn_RPWM, 0);
-  analogWrite(dpn_LPWM, 100);
+  analogWrite(dpn_LPWM, 125);
 }
 
 /*
@@ -194,15 +215,19 @@ void kiri(){
  */
  
 void maju(){
+  digitalWrite(A4, LOW);
+  digitalWrite(A5, HIGH);
   digitalWrite(blkg_EN, HIGH);
-  analogWrite(blkg_RPWM, 40);
-  analogWrite(blkg_LPWM, 0);  
+  analogWrite(blkg_RPWM,90);
+  analogWrite(blkg_LPWM, 225);  
 }
 
 void mundur(){
+  digitalWrite(A5, LOW);
+  digitalWrite(A4, HIGH);
   digitalWrite(blkg_EN, HIGH);
-  analogWrite(blkg_RPWM, 0);
-  analogWrite(blkg_LPWM, 40);
+  analogWrite(blkg_RPWM, 90);
+  analogWrite(blkg_LPWM, 225);
 }
 
 /*
@@ -219,4 +244,6 @@ void blkg_diam(){
   digitalWrite(blkg_EN, LOW);
   analogWrite(blkg_RPWM, 0);
   analogWrite(blkg_LPWM, 0);
+  //digitalWrite(A4, HIGH);
+  //digitalWrite(A5, HIGH);
 }
