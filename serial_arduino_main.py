@@ -59,4 +59,14 @@ while True:
     # Send the string. 
     ser.write(send_string.encode('utf-8'))
 
-    # Received data from main Arduino
+    # After sending, set  position of motor depan and kamera to be diam to prevent from next unpressed key
+    # save command to file and send to arduino main
+
+    kode_motor_depan = 60
+    kode_kamera = 100
+    
+    f = open("data_serial_main.txt","w")
+    f.write("%d \r\n" %kode_motor_belakang)
+    f.write("%d \r\n" %kode_motor_depan)
+    f.write("%d \r\n" %kode_kamera)
+    f.close()

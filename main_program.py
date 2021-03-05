@@ -37,9 +37,11 @@ print("Start")
 # 10 = motor belakang maju
 # 20 = motor belakang mundur
 # 30 = motor belakang diam
+
 # 40 = motor depan kanan
 # 50 = motor depan kiri
 # 60 = motor depan diam
+
 # 70 = kamera ke kanan 30 derajat
 # 80 = kamera ke kiri 30 derajat
 # 90 = kamera ke tengah
@@ -81,7 +83,13 @@ def kamera_tengah():
 def kamera_diam():
     kode_kamera = 100
 
+
+def buka_pintu():
+    subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/IR_Transmit.py"], stdout=PIPE, stderr=PIPE)
+
+
 status_x = "diam"
+
 #---------------------------Kode Awal---------------------------#
 
 ap = argparse.ArgumentParser()
@@ -261,17 +269,17 @@ while(True):
             us_b_kiri = aman
         
         if status_x == "maju":
-            if us_tengah_dpn <=60 :
-                belakang_diam()
+            if us_tengah_dpn <= 50 :
+                #belakang_diam()
                 belakang_mundur()
-                belakang_diam()
+                #belakang_diam()
                 status_x = "diam"
             
         if status_x == "mundur":
-            if us_tengah_blk <=60 :
+            if us_tengah_blk <= 50 :
                 belakang_diam()
-                belakang_maju()
-                belakang_diam()
+                #belakang_maju()
+                #belakang_diam()
                 status_x = "diam"
             
         counter_us_dpn = 0

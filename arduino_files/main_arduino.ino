@@ -91,12 +91,6 @@ void loop() {
     kode_kamera = Serial.parseInt();
   }
 
-  if(Serial.available() == 0 ){
-    kode_motor_belakang = 30;
-    kode_motor_depan = 60;
-    kode_kamera = 100;
-  }
-
 
 //--------------------Motor Belakang-----------------
   if(kode_motor_belakang == 10){
@@ -159,8 +153,6 @@ void loop() {
   if(battery_percent > 100){
     battery_percent = 100;
   }
-
-
 
   //Send data to Raspberry Pi
   Serial.println(battery_percent);
