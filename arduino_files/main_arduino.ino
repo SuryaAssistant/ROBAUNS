@@ -3,9 +3,6 @@
 
 //R_EN and L_EN using the same pin
 
-//pin D7 use for receiving signal from us_modul to
-//stopping motor automatically
-#define auto_stop 7
 
 //Motor Depan
 #define dpn_RPWM 3 
@@ -17,12 +14,6 @@
 #define blkg_EN 8 
 #define blkg_LPWM 9
 
-//Input Raspi
-#define in_dpn_R 2
-#define in_dpn_L 11
-
-#define in_blkg_R 12
-#define in_blkg_L 13
 
 //Servo
 #include<Servo.h>
@@ -31,34 +22,38 @@ Servo kamera_servo;
 
 int i;
 
-// hall sensor
-const int hall_sensor =  A0;
+// kode status perintah raspi
+// 10 = motor belakang maju
+// 20 = motor belakang mundur
+// 30 = motor belakang diam
+// 40 = motor depan kanan
+// 50 = motor depan kiri
+// 60 = motor depan diam
+// 70 = kamera ke kanan 30 derajat
+// 80 = kamera ke kiri 30 derajat
+// 90 = kamera ke tengah
+// 100 = kamera diam
 
-//kamera
-const int kamera_kanan = A1; //GPIO13
-const int kamera_kiri = A2; //GPIO6
+int kode_motor_belakang = 30;
+int kode_motor_depan = 60;
 
-int kamera_posisi = 90;
+int kode_kamera = 90;
+
+int kamera_posisi = 90; //derajat
+int ubah_posisi_kamera = 30; //derajat
 
 //battery
 const int battery_input_pin = A3;
-int battery_input_value = 0;
+// value from voltage divider
+int battery_input_value;
+// percentage 
+int battery_percent;
 
 
 void setup() {
   Serial.begin(9600);
 
-  pinMode(hall_sensor, INPUT);
-
-  pinMode(kamera_kanan, INPUT);
-  pinMode(kamera_kiri, INPUT);
-
   pinMode(battery_input_pin, INPUT);
-
-  //Setting Mode Pin
-  pinMode(A4, OUTPUT);
-  pinMode(A5, OUTPUT);
-
   
   pinMode(dpn_RPWM, OUTPUT);
   pinMode(dpn_EN, OUTPUT);
@@ -68,15 +63,8 @@ void setup() {
   pinMode(blkg_EN, OUTPUT);
   pinMode(blkg_LPWM, OUTPUT);
 
-  pinMode(in_dpn_R, INPUT);
-  pinMode(in_dpn_L, INPUT);
-
-  pinMode(in_blkg_R, INPUT);
-  pinMode(in_blkg_L, INPUT);
-
   //Kamera_servo
   kamera_servo.attach(servo_pin);
-
   //Set servo 0 degree
   kamera_servo.write(kamera_posisi);
 
@@ -89,110 +77,94 @@ void setup() {
   analogWrite(blkg_RPWM, 0);
   analogWrite(blkg_LPWM, 0);
 
-  digitalWrite(A4, HIGH);
-  digitalWrite(A5, HIGH);
-
   delay(1000);
 }
 
 void loop() {
-  int status_kanan = digitalRead(in_dpn_R);
-  int status_kiri = digitalRead(in_dpn_L);
-  int status_maju = digitalRead(in_blkg_R);
-  int status_mundur = digitalRead(in_blkg_L);
-  int status_auto_stop = digitalRead(auto_stop);
-  ///int status_tengah = digitalRead
 
-  int read_kamera_kanan = digitalRead(kamera_kanan);
-  int read_kamera_kiri = digitalRead(kamera_kiri);  
+  // Read serial from Raspberry Pi
+  // data receive in (kode_motor_belakang,kode_motor_depan,kode_kamera)
 
-/*
-  //hall_sensor
-  int hall_value = analogRead(hall_sensor);
-
-  if(status_kanan == HIGH){
-    //jika roda berada di tengah, gerak saja
-    if (hall_value < 500){
-      kanan();
-    }
-    //jika roda tidak di tengah, gerak saja. 
-    //tunggu beberapa saat 
-    //Jika roda sampai tengah, diam.
-    if(hall_value > 500){
-      kanan();
-      delay(100);
-      if (hall_value < 500){
-        dpn_diam();
-      }
-    }
+  if(Serial.available() > 0) {
+    kode_motor_belakang = Serial.parseInt();
+    kode_motor_depan = Serial.parseInt();
+    kode_kamera = Serial.parseInt();
   }
 
-  if(status_kiri == HIGH){
-    //jika roda berada di tengah, gerak saja
-    if (hall_value < 500){
-      kiri();
-    }
-    //jika roda tidak di tengah, gerak saja. tunggu beberapa saat 
-    //Jika roda sampai tengah, diam.
-    if(hall_value > 500){
-      kiri();
-      delay(100);
-      if (hall_value < 500){
-        dpn_diam();
-      }
-    }
+  if(Serial.available() == 0 ){
+    kode_motor_belakang = 30;
+    kode_motor_depan = 60;
+    kode_kamera = 100;
   }
 
-*/
+
+//--------------------Motor Belakang-----------------
+  if(kode_motor_belakang == 10){
+    maju();
+  }
+
+  if(kode_motor_belakang == 20){
+    mundur();
+  }
+
+  if(kode_motor_belakang == 30){
+    blkg_diam();
+  }
+
+
+
+//-------------------Motor Depan------------------
+  if(kode_motor_depan == 40){
+    kanan();
+  }
+  if(kode_motor_depan == 50){
+    kiri();
+  }  
+  if(kode_motor_depan == 60){
+    dpn_diam();
+  }
+
+
 //-----------------------Kamera------------------
-  if(read_kamera_kanan == HIGH){
-      kamera_servo.write(kamera_posisi+45);
-      read_kamera_kanan == LOW;
+  if(kode_kamera == 70){
+      kamera_servo.write(kamera_posisi + ubah_posisi_kamera);
+      //save position
+      kamera_posisi = kamera_posisi + ubah_posisi_kamera;
   }
   
-  if(read_kamera_kiri == HIGH){
-      kamera_servo.write(kamera_posisi-45);
-      read_kamera_kiri == LOW;
+  if(kode_kamera == 80){
+      kamera_servo.write(kamera_posisi + ubah_posisi_kamera);
+      //save position
+      kamera_posisi = kamera_posisi + ubah_posisi_kamera;
   } 
+
+  if(kode_kamera == 90){
+    kamera_servo.write(90);
+  }
+
+  if(kode_kamera == 100){
+    kamera_servo.write(kamera_posisi);
+  }
+
+
 
 //-----------------------Baterai------------------
   battery_input_value = analogRead(battery_input_pin);
   //Konversi ADC ke nilai tegangan
-
-//-------------------------Motor------------------
-  if(status_kanan == HIGH){
-    kanan();
-  }
-  if(status_kiri == HIGH){
-    kiri();
-  }  
-  if(status_kanan == LOW && status_kiri == LOW){
-    dpn_diam();
+  //Convert battery value to percent
+  //max = V (~ADC value); min = V (ADC value);
+  battery_percent= map(input_battery, 824, 688, 100, 0);
+  //set battery to max 100%
+  
+  if(battery_percent > 100){
+    battery_percent = 100;
   }
 
-  if(status_maju == HIGH){
-    maju();
-  }
 
-  if(status_mundur == HIGH){
-    mundur();
-  }
 
-  if(status_maju == LOW && status_mundur == LOW){
-    blkg_diam();
-  }
-
-  if(status_auto_stop == HIGH){
-    blkg_diam();
-  }
-
-  Serial.print(digitalRead(2));
-    Serial.print("         ");
-  Serial.print(digitalRead(11));
-    Serial.print("         ");
-  Serial.print(digitalRead(12));
-    Serial.print("         ");
-  Serial.println(digitalRead(13));
+  //Send data to Raspberry Pi
+  Serial.println(battery_percent);
+  
 }
 
 /*
@@ -244,6 +216,4 @@ void blkg_diam(){
   digitalWrite(blkg_EN, LOW);
   analogWrite(blkg_RPWM, 0);
   analogWrite(blkg_LPWM, 0);
-  //digitalWrite(A4, HIGH);
-  //digitalWrite(A5, HIGH);
 }

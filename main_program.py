@@ -27,64 +27,59 @@ import datetime
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
-#-----------------------------Pin Config-----------------------------#
-
-#------------------SERVO------------------#
-#servoPIN = 18
-#GPIO.setup(servoPIN, GPIO.OUT)
-#p = GPIO.PWM(servoPIN, 50) # GPIO 17 for PWM with 50Hz
-#p.start(0)
-#p.ChangeDutyCycle(0)
-
-#---------------Encoder_pins---------------#
 
 print("Loading...")
 sleep(1.00)
 
 print("Start")
 
-#------------------------------Function------------------------------#
+# kode status perintah raspi
+# 10 = motor belakang maju
+# 20 = motor belakang mundur
+# 30 = motor belakang diam
+# 40 = motor depan kanan
+# 50 = motor depan kiri
+# 60 = motor depan diam
+# 70 = kamera ke kanan 30 derajat
+# 80 = kamera ke kiri 30 derajat
+# 90 = kamera ke tengah
+# 100 = kamera diam
 
-# define for calling script
+kode_motor_belakang = 30
+kode_motor_depan = 60
+kode_kamera = 100
+
+#--------------------------------------------------Function-------------------------------------------------#
+
+def belakang_maju():
+    kode_motor_belakang = 10
+
+def belakang_mundur():
+    kode_motor_belakang = 20
+
+def belakang_diam():
+    kode_motor_belakang = 30
+
+def depan_kanan():
+    kode_motor_depan = 40
+
+def depan_kiri():
+    kode_motor_depan = 50
+
+def depan_diam():
+    kode_motor_depan = 60
+
 def kamera_kanan():
-    p_cam_kanan=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/kamera_kanan.py"], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = p_cam_kanan.communicate()
-    print(stdout)
-    
+    kode_kamera = 70
+
 def kamera_kiri():
-    p_cam_kiri=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/kamera_kiri.py"], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = p_cam_kiri.communicate()
-    print(stdout)
+    kode_kamera = 80
 
-def kanan():
-    p_kanan=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/kontrol_motor_kanan.py"], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = p_kanan.communicate()
-    print(stdout)
-    
-def kiri():
-    p_kiri=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/kontrol_motor_kiri.py"], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = p_kiri.communicate()
-    print(stdout)
+def kamera_tengah():
+    kode_kamera = 90
 
-def mundur():
-    p_mundur=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/kontrol_motor_mundur.py"], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = p_mundur.communicate()
-    print(stdout)
-    
-def maju():
-    p_maju=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/kontrol_motor_maju.py"], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = p_maju.communicate()
-    print(stdout)
-    
-def diam():
-    p_diam=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/kontrol_motor_diam.py"], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = p_diam.communicate()
-    print(stdout)
-
-def buka_pintu():
-    p=subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/IR_Transmit.py"], stdout=PIPE, stderr=PIPE)
-    stdout, stderr = p.communicate()
-    print(stdout)
+def kamera_diam():
+    kode_kamera = 100
 
 status_x = "diam"
 #---------------------------Kode Awal---------------------------#
@@ -138,17 +133,22 @@ width_camera_status = 600
 width_camera_copy = 800
 height_camera_copy = int((width_camera_copy/1280)*720)
 
+#data serial awal
 data_depan = [0, 0, default_num, default_num, default_num]
 data_belakang = [default_num, default_num, default_num]
+#data_main = [30,60,100]
 
 
 #---------------------------Operation Code---------------------------#
 
 # mengitung waktu untuk membaca serial arduino
 counter_us_dpn = 0
+
+
 #pemanggilan serial
 subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/serial_arduino_depan.py"], stdout=PIPE, stderr=PIPE)
 subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/serial_arduino_belakang.py"], stdout=PIPE, stderr=PIPE)
+subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/serial_arduino_main.py"], stdout=PIPE, stderr=PIPE)
 
 while(True):
 
@@ -223,6 +223,14 @@ while(True):
                 us_tengah_blk = data_belakang[1]
                 us_kanan_blk = data_belakang[2]
         
+
+        # save command to file and send to arduino main
+        f = open("data_serial_main.txt","w")
+        f.write("%d \r\n" %kode_motor_belakang)
+        f.write("%d \r\n" %kode_motor_depan)
+        f.write("%d \r\n" %kode_kamera)
+        f.close()
+
         # Kondisi di layar
         # us_depan
         if us_tengah_dpn <= 50:
@@ -254,16 +262,16 @@ while(True):
         
         if status_x == "maju":
             if us_tengah_dpn <=60 :
-                diam()
-                mundur()
-                diam()
+                belakang_diam()
+                belakang_mundur()
+                belakang_diam()
                 status_x = "diam"
             
         if status_x == "mundur":
             if us_tengah_blk <=60 :
-                diam()
-                maju()
-                diam()
+                belakang_diam()
+                belakang_maju()
+                belakang_diam()
                 status_x = "diam"
             
         counter_us_dpn = 0
@@ -320,19 +328,19 @@ while(True):
 
     key = cv2.waitKey(1) & 0xFF
     if key == ord("w"):
-        maju()
+        belakang_maju()
         status_jalan = "maju"
         status_x = "maju"
     if key == ord("s"):
-        mundur()
+        belakang_mundur()
         status_jalan = "mundur"
         status_x = "mundur"
     if key == ord("d"):
-        kanan()                        
+        depan_kanan()                        
     if key == ord("a"):
-        kiri()
+        depan_kiri()
     if key == ord("x"):
-        diam()
+        belakang_diam()
         status_jalan = "berhenti"
         status_x = "diam"
 
