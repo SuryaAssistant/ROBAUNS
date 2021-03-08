@@ -1,5 +1,5 @@
 #GPIO for the IR receiver: 23
-#GPIO for the IR transmitter: 14
+#GPIO for the IR transmitter: 24
 import time
 import os
 
