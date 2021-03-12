@@ -5,7 +5,6 @@ import serial
 default_num = 10000
 
 # data send in (kode_motor_belakang,kode_motor_depan,kode_kamera)
-
 data_main = [30, 60, 100]
 
 kode_motor_belakang = 30
@@ -44,7 +43,8 @@ while True:
         #print non-read data with default_num
         #for h in range(j):
         #   data[h+k] = default_num
-        print(data_main)
+
+        #print(data_main)
 
         if n != 0:
             kode_motor_belakang = data_main[0]
@@ -70,4 +70,5 @@ while True:
     f.write("%d \r\n" %kode_motor_depan)
     f.write("%d \r\n" %kode_kamera)
     f.close()
+
 
