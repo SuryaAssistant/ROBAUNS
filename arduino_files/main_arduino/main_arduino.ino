@@ -11,13 +11,13 @@
 
 //Motor Belakang
 #define blkg_RPWM 6 
-#define blkg_EN 8 
-#define blkg_LPWM 9
+#define blkg_EN 9 
+#define blkg_LPWM 11
 
 
 //Servo
 #include<Servo.h>
-#define servo_pin 9
+#define servo_pin 10
 Servo kamera_servo;
 
 int i;
@@ -36,7 +36,6 @@ int i;
 
 int kode_motor_belakang = 30;
 int kode_motor_depan = 60;
-
 int kode_kamera = 90;
 
 int kamera_posisi = 90; //derajat
@@ -147,7 +146,7 @@ void loop() {
   //Konversi ADC ke nilai tegangan
   //Convert battery value to percent
   //max = V (~ADC value); min = V (ADC value);
-  battery_percent= map(input_battery, 824, 688, 100, 0);
+  battery_percent= map(battery_input_value, 824, 688, 100, 0);
   //set battery to max 100%
   
   if(battery_percent > 100){
@@ -166,12 +165,14 @@ void kanan(){
   digitalWrite(dpn_EN, HIGH);
   analogWrite(dpn_RPWM, 125);
   analogWrite(dpn_LPWM, 0);
+
 }
 
 void kiri(){
   digitalWrite(dpn_EN, HIGH);
   analogWrite(dpn_RPWM, 0);
   analogWrite(dpn_LPWM, 125);
+
 }
 
 /*
@@ -179,19 +180,17 @@ void kiri(){
  */
  
 void maju(){
-  digitalWrite(A4, LOW);
-  digitalWrite(A5, HIGH);
   digitalWrite(blkg_EN, HIGH);
-  analogWrite(blkg_RPWM,90);
-  analogWrite(blkg_LPWM, 225);  
+  analogWrite(blkg_RPWM, 125);
+  analogWrite(blkg_LPWM, 0);  
+
 }
 
 void mundur(){
-  digitalWrite(A5, LOW);
-  digitalWrite(A4, HIGH);
   digitalWrite(blkg_EN, HIGH);
-  analogWrite(blkg_RPWM, 90);
-  analogWrite(blkg_LPWM, 225);
+  analogWrite(blkg_RPWM, 0);
+  analogWrite(blkg_LPWM, 125);
+
 }
 
 /*

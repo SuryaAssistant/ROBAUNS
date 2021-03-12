@@ -1,5 +1,6 @@
 #! /usr/bin/python3
 
+#----------------------------------------------Import Library(s)----------------------------------------------#
 
 from __future__ import print_function
 #for Videostream
@@ -24,6 +25,8 @@ from subprocess import Popen, PIPE
 #get time
 import datetime
 
+#------------------------------------------End of Import  Library(s)------------------------------------------#
+
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
@@ -32,6 +35,9 @@ print("Loading...")
 sleep(1.00)
 
 print("Start")
+
+
+#-----------------------------------------------Serial Protocol-----------------------------------------------#
 
 # kode status perintah raspi
 # 10 = motor belakang maju
@@ -47,11 +53,14 @@ print("Start")
 # 90 = kamera ke tengah
 # 100 = kamera diam
 
+# default code
 kode_motor_belakang = 30
 kode_motor_depan = 60
 kode_kamera = 100
 
-#--------------------------------------------------Function-------------------------------------------------#
+#-------------------------------------------End of Serial Protocol-------------------------------------------#
+
+#-----------------------------------------------Local Function-----------------------------------------------#
 
 def belakang_maju():
     kode_motor_belakang = 10
@@ -83,12 +92,12 @@ def kamera_tengah():
 def kamera_diam():
     kode_kamera = 100
 
-
 def buka_pintu():
     subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/IR_Transmit.py"], stdout=PIPE, stderr=PIPE)
 
+#-------------------------------------------End of Local Function-------------------------------------------#
 
-status_x = "diam"
+status_robot = "diam"
 
 #---------------------------Kode Awal---------------------------#
 
@@ -104,8 +113,6 @@ print("Mengaktifkan kamera ...")
 
 # waktu bagi kamera untuk melakukan "pemanasan"
 sleep(2.0)
-
-status_jalan = "diam"
 
 # warna
 aman = (0, 255, 0)
@@ -130,8 +137,7 @@ us_kiri_blk = default_num
 us_tengah_blk = default_num
 us_kanan_blk = default_num
 
-encoder_dpn = 0
-
+#encoder_dpn = 0
 
 width_camera_only = 700
 height_camera_only = int((width_camera_only/1280)*720)
@@ -144,16 +150,16 @@ height_camera_copy = int((width_camera_copy/1280)*720)
 #data serial awal
 data_depan = [0, 0, default_num, default_num, default_num]
 data_belakang = [default_num, default_num, default_num]
-#data_main = [30,60,100]
+data_main = [kode_motor_belakang, kode_motor_depan, kode_kamera]
 
 
 #---------------------------Operation Code---------------------------#
 
-# mengitung waktu untuk membaca serial arduino
-counter_us_dpn = 0
+# set counter_serial = 0 untuk reset counter pembacaan serial
+counter_serial = 0
 
 
-#pemanggilan serial
+# pemanggilan serial
 subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/serial_arduino_depan.py"], stdout=PIPE, stderr=PIPE)
 subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/serial_arduino_belakang.py"], stdout=PIPE, stderr=PIPE)
 subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/serial_arduino_main.py"], stdout=PIPE, stderr=PIPE)
@@ -165,13 +171,17 @@ while(True):
     frame = vs.read() #gambar asli
     
     # resize for real frame (detection)
-    frame = imutils.resize(frame, width=720)
+    frame = imutils.resize(frame, width=600)
     
     # resize from real
+    # for camera_copy (800p)
     frame_copy = imutils.resize(frame, width = width_camera_copy)
+    #for camera_only (7000)
     camera_only_frame = imutils.resize(frame, width = width_camera_only)
 
-    if counter_us_dpn == 5:            
+
+    # panggil serial setiap counter = 5
+    if counter_serial == 5:            
         # read stored variable value in data_serial_depan.txt
         with open("/home/pi/RoboCov19UNS/data_serial_depan.txt", "r",encoding="utf-8") as g:
             data_serial_depan = list(map(int, g.readlines()))
@@ -201,7 +211,6 @@ while(True):
                 us_kiri_dpn = data_depan[2]
                 us_tengah_dpn = data_depan[3]
                 us_kanan_dpn = data_depan[4]
-
                         
         with open("/home/pi/RoboCov19UNS/data_serial_belakang.txt", "r", encoding = "utf-8") as h:
             data_serial_belakang = list(map(int, h.readlines()))
@@ -231,8 +240,8 @@ while(True):
                 us_tengah_blk = data_belakang[1]
                 us_kanan_blk = data_belakang[2]
         
-
-        # save command to file and send to arduino main
+        # save command to control motor and servo via serial 
+        # save file and send to arduino main using main_serial
         f = open("data_serial_main.txt","w")
         f.write("%d \r\n" %kode_motor_belakang)
         f.write("%d \r\n" %kode_motor_depan)
@@ -268,21 +277,21 @@ while(True):
         if us_kiri_blk > 30:
             us_b_kiri = aman
         
-        if status_x == "maju":
+
+        # fungsi autostop
+        # jika  robot mendeteksi benda
+        if status_robot == "maju":
             if us_tengah_dpn <= 50 :
-                #belakang_diam()
                 belakang_mundur()
-                #belakang_diam()
-                status_x = "diam"
+                status_robot = "diam"
             
-        if status_x == "mundur":
+        if status_robot == "mundur":
             if us_tengah_blk <= 50 :
                 belakang_diam()
-                #belakang_maju()
-                #belakang_diam()
-                status_x = "diam"
-            
-        counter_us_dpn = 0
+                status_robot = "diam"
+        
+        # reset counter
+        counter_serial = 0
 
     # status_us_depan
     font = cv2.FONT_HERSHEY_SIMPLEX
@@ -301,7 +310,7 @@ while(True):
     cv2.putText(frame_copy,'{}'.format(us_tengah_blk),(385,height_camera_copy-15), font, 0.6,(255,255,255),2,cv2.LINE_AA)
     cv2.putText(frame_copy,'{}'.format(us_kanan_blk),(700,height_camera_copy-5), font, 0.6,(255,255,255),2,cv2.LINE_AA)
     
-    cv2.putText(frame_copy,'Robot {}'.format(status_jalan),(10,50), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(frame_copy,'Robot {}'.format(status_robot),(10,50), font, 0.6,(255,255,255),1,cv2.LINE_AA)
     #cv2.putText(frame_copy,'Encoder {}'.format(encoder_dpn),(10,70), font, 0.6,(255,255,255),1,cv2.LINE_AA)
     
     # info tab
@@ -317,7 +326,7 @@ while(True):
     cv2.putText(camera_only_frame,'M ~ Buka pintu',(width_camera_only-155, height_camera_only-30), font, 0.6,(255,255,255),1,cv2.LINE_AA)
     cv2.putText(camera_only_frame,'{}'.format(datetime.datetime.now()),(width_camera_only - 222, height_camera_only -10), font, 0.6,(255,255,255),1,cv2.LINE_AA)
 
-    cv2.putText(frame_copy,'{}'.format(counter_us_dpn),(775,50), font, 0.5,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(frame_copy,'{}'.format(counter_serial),(775,50), font, 0.5,(255,255,255),1,cv2.LINE_AA)
 
     # show image
     # Frame asli
@@ -332,25 +341,23 @@ while(True):
     #cv2.imshow("Status", status_frame)
     
     # menambah counter
-    counter_us_dpn = counter_us_dpn+1
+    counter_serial = counter_serial+1
 
+    # baca keyboard
     key = cv2.waitKey(1) & 0xFF
     if key == ord("w"):
         belakang_maju()
-        status_jalan = "maju"
-        status_x = "maju"
+        status_robot = "maju"
     if key == ord("s"):
         belakang_mundur()
-        status_jalan = "mundur"
-        status_x = "mundur"
+        status_robot = "mundur"
     if key == ord("d"):
         depan_kanan()                        
     if key == ord("a"):
         depan_kiri()
     if key == ord("x"):
         belakang_diam()
-        status_jalan = "berhenti"
-        status_x = "diam"
+        status_robot = "diam"
 
     if key == ord("o"):
         kamera_kiri()
