@@ -25,6 +25,8 @@ from subprocess import Popen, PIPE
 #get time
 import datetime
 
+import serial
+
 #------------------------------------------End of Import  Library(s)------------------------------------------#
 
 GPIO.setmode(GPIO.BCM)
@@ -40,57 +42,67 @@ print("Start")
 #-----------------------------------------------Serial Protocol-----------------------------------------------#
 
 # kode status perintah raspi
-# 10 = motor belakang maju
-# 20 = motor belakang mundur
-# 30 = motor belakang diam
+# 1 = motor belakang maju
+# 2 = motor belakang mundur
+# 3 = motor belakang diam
 
-# 40 = motor depan kanan
-# 50 = motor depan kiri
-# 60 = motor depan diam
+# 4 = motor depan kanan
+# 5 = motor depan kiri
+# 6 = motor depan diam
 
-# 70 = kamera ke kanan 30 derajat
-# 80 = kamera ke kiri 30 derajat
-# 90 = kamera ke tengah
-# 100 = kamera diam
+# 10 = kamera ke kanan 30 derajat
+# 11 = kamera ke kiri 30 derajat
+# 12 = kamera ke tengah
+# 13 = kamera diam
 
 # default code
-kode_motor_belakang = 30
-kode_motor_depan = 60
-kode_kamera = 100
+kode_motor_belakang = 3
+kode_motor_depan = 6
+kode_kamera = 13
 
 #-------------------------------------------End of Serial Protocol-------------------------------------------#
 
 #-----------------------------------------------Local Function-----------------------------------------------#
 
 def belakang_maju():
-    kode_motor_belakang = 10
+    global kode_motor_belakang
+    kode_motor_belakang = 1
 
 def belakang_mundur():
-    kode_motor_belakang = 20
+    global kode_motor_belakang
+    kode_motor_belakang = 2
 
 def belakang_diam():
-    kode_motor_belakang = 30
+    global kode_motor_belakang
+    kode_motor_belakang = 3
 
 def depan_kanan():
-    kode_motor_depan = 40
+    global kode_motor_depan
+    kode_motor_depan = 4
 
 def depan_kiri():
-    kode_motor_depan = 50
+    global kode_motor_depan
+    kode_motor_depan = 5
 
 def depan_diam():
-    kode_motor_depan = 60
+    global kode_motor_depan
+    kode_motor_depan = 6
 
 def kamera_kanan():
-    kode_kamera = 70
+    global kode_kamera
+    kode_kamera = 10
 
 def kamera_kiri():
-    kode_kamera = 80
+    global kode_kamera
+    kode_kamera = 11
 
 def kamera_tengah():
-    kode_kamera = 90
+    global kode_kamera
+    kode_kamera = 12
 
 def kamera_diam():
-    kode_kamera = 100
+    global kode_kamera
+    kode_kamera = 13
 
 def buka_pintu():
     subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/IR_Transmit.py"], stdout=PIPE, stderr=PIPE)
@@ -150,8 +162,6 @@ height_camera_copy = int((width_camera_copy/1280)*720)
 #data serial awal
 data_depan = [0, 0, default_num, default_num, default_num]
 data_belakang = [default_num, default_num, default_num]
-data_main = [kode_motor_belakang, kode_motor_depan, kode_kamera]
-
 
 #---------------------------Operation Code---------------------------#
 
@@ -162,7 +172,17 @@ counter_serial = 0
 # pemanggilan serial
 subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/serial_arduino_depan.py"], stdout=PIPE, stderr=PIPE)
 subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/serial_arduino_belakang.py"], stdout=PIPE, stderr=PIPE)
-subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/serial_arduino_main.py"], stdout=PIPE, stderr=PIPE)
+
+# send and receive data to main arduino
+ser_main = serial.Serial(
+   port='/dev/ttyUSB0',
+   baudrate = 9600,
+   parity=serial.PARITY_NONE,
+   stopbits=serial.STOPBITS_ONE,
+   bytesize=serial.EIGHTBITS,
+   timeout=1
+)
+ser_main.flush()
 
 while(True):
 
@@ -178,6 +198,18 @@ while(True):
     frame_copy = imutils.resize(frame, width = width_camera_copy)
     #for camera_only (7000)
     camera_only_frame = imutils.resize(frame, width = width_camera_only)
+
+
+    kode_enkripsi = (kode_motor_belakang*1000)+(kode_motor_depan*100)+(kode_kamera)
+    string_kode = str(kode_enkripsi)
+    send_string = ("{}\n".format(string_kode))
+    ser_main.write(send_string.encode('utf-8'))
+    
+    #set to default
+    kode_motor_depan = 6
+    kode_kamera = 13
+    
+    print(send_string.encode('utf-8'))
 
 
     # panggil serial setiap counter = 5
@@ -239,14 +271,7 @@ while(True):
                 us_kiri_blk = data_belakang[0]
                 us_tengah_blk = data_belakang[1]
                 us_kanan_blk = data_belakang[2]
-        
-        # save command to control motor and servo via serial 
-        # save file and send to arduino main using main_serial
-        f = open("data_serial_main.txt","w")
-        f.write("%d \r\n" %kode_motor_belakang)
-        f.write("%d \r\n" %kode_motor_depan)
-        f.write("%d \r\n" %kode_kamera)
-        f.close()
+
 
         # Kondisi di layar
         # us_depan
@@ -314,14 +339,13 @@ while(True):
     #cv2.putText(frame_copy,'Encoder {}'.format(encoder_dpn),(10,70), font, 0.6,(255,255,255),1,cv2.LINE_AA)
     
     # info tab
-    cv2.putText(camera_only_frame,'W ~ Maju',(10,height_camera_only-150), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-    cv2.putText(camera_only_frame,'S ~ Mundur',(10,height_camera_only - 130), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-    cv2.putText(camera_only_frame,'A ~ Belok kiri',(10,height_camera_only - 110), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-    cv2.putText(camera_only_frame,'D ~ Belok kanan',(10, height_camera_only - 90), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-    cv2.putText(camera_only_frame,'X ~ Berhenti',(10, height_camera_only - 70), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(camera_only_frame,'W ~ Maju',(10,height_camera_only-130), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(camera_only_frame,'S ~ Mundur',(10,height_camera_only - 110), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(camera_only_frame,'A ~ Belok kiri',(10,height_camera_only - 90), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(camera_only_frame,'D ~ Belok kanan',(10, height_camera_only - 70), font, 0.6,(255,255,255),1,cv2.LINE_AA)
     cv2.putText(camera_only_frame,'O ~ Kamera kiri',(10, height_camera_only - 50), font, 0.6,(255,255,255),1,cv2.LINE_AA)
     cv2.putText(camera_only_frame,'P ~ Kamera kanan',(10, height_camera_only - 30), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-    cv2.putText(camera_only_frame,'Q ~ Exit',(10, height_camera_only -10), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+    cv2.putText(camera_only_frame,'Q ~ Exit',(10, height_camera_only - 10), font, 0.6,(255,255,255),1,cv2.LINE_AA)
 
     cv2.putText(camera_only_frame,'M ~ Buka pintu',(width_camera_only-155, height_camera_only-30), font, 0.6,(255,255,255),1,cv2.LINE_AA)
     cv2.putText(camera_only_frame,'{}'.format(datetime.datetime.now()),(width_camera_only - 222, height_camera_only -10), font, 0.6,(255,255,255),1,cv2.LINE_AA)
@@ -334,7 +358,7 @@ while(True):
     #cv2.imshow("Copy", frame_copy)
     
     # hanya tangkapan kamera
-    cv2.imshow("Kamera", camera_only_frame)
+    cv2.imshow("Kamera_view", camera_only_frame)
     
     # Pengecilan 2x dari "Frame asli" (width=400)
     status_frame = imutils.resize(frame_copy, width=width_camera_status)
@@ -344,29 +368,51 @@ while(True):
     counter_serial = counter_serial+1
 
     # baca keyboard
+    # when use raspi, use cv2.waitKey(1) instead of cv2.waitKeyEx(1)
     key = cv2.waitKey(1) & 0xFF
-    if key == ord("w"):
+
+    # if the 'q' key is pressed, stop the loop
+    # key up = 65362 --> 'R' 82
+    # key down = 65634 --> 'T' 84
+    # key right = 65363 --> 'S' 83
+    # key left = 65361 --> 'Q' 81
+
+        
+    if key == ord("w") or key == 65362 or key == 82:
         belakang_maju()
         status_robot = "maju"
-    if key == ord("s"):
+        print("UP")
+    elif key == ord("s") or key == 65634 or key == 84:
         belakang_mundur()
         status_robot = "mundur"
-    if key == ord("d"):
-        depan_kanan()                        
-    if key == ord("a"):
+        print("DOWN")
+    elif key == ord("d") or key == 65363 or key == 83:
+        depan_kanan()
+        print("RIGHT")
+    elif key == ord("a") or key == 65361 or key == 81:
         depan_kiri()
-    if key == ord("x"):
+        print("LEFT")        
+    elif key == ord("x") or key == ord(" "):
         belakang_diam()
         status_robot = "diam"
-
-    if key == ord("o"):
-        kamera_kiri()
         
-    if key == ord("p"):
+    #-----------kamera--------------------
+    elif key == ord("o"):
+        kamera_kiri()  
+    elif key == ord("p"):
         kamera_kanan()
+    elif key == ord("1"):
+        kamera_tengah()
+    elif key == ord("0"):
+        kamera_diam()
+    #-----------end of kamera---------------
         
-    if key == ord("m"): #buka pintu
+    elif key == ord("m"): #buka pintu
         buka_pintu()
+    else:
+        belakang_diam()
+        depan_diam()
+        kamera_diam()
                 
     if key == ord("q"):
         break
