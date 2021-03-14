@@ -82,6 +82,12 @@ void setup() {
 void loop() {
 
   // Read serial from Raspberry Pi
+  if (serial.available() == 0){
+    kode_motor_belakang = 3
+    kode_motor_depan = 6
+    kode_kamera = 13
+  }
+  
   if (Serial.available()) {
 
     string_kode_enkripsi = Serial.readStringUntil('\n');
