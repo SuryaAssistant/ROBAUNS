@@ -1,4 +1,5 @@
 Program-program yang dipakai di arduino
 
-"main_arduino.ino" digunakan untuk arduino pusat
-"arduino_modul_without_i2c" digunakan di arduino belakang dan depan (untuk sementara)
+"main_arduino" digunakan untuk arduino kontrol motor
+"arduino_depan" digunakan di arduino depan
+"arduino_belakang" digunakan di arduino belakang
