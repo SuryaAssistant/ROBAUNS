@@ -96,9 +96,9 @@ void loop() {
 
   //--------------------Ping dan Dekripsi-----------------
   
-  if (string_kode_enkripsi == "main") {
+  if (string_kode_enkripsi == "check") {
     //Kirim balasan
-    Serial.println("depan");
+    Serial.println("main");
     Serial.flush();
     digitalWrite(LED, HIGH);
     delay(500);
@@ -109,19 +109,18 @@ void loop() {
 
     // ubah ke integer
     int_kode_enkripsi = string_kode_enkripsi.toInt();
-
+    // contoh 11413
     // dekripsi
-    kode_motor_belakang = int_kode_enkripsi / 1000;
-    kode_motor_depan = (int_kode_enkripsi - (kode_motor_belakang * 1000)) / 100;
-    kode_kamera = (int_kode_enkripsi - ((kode_motor_belakang * 1000) + (kode_motor_depan * 100)));
-    digitalWrite(LED, LOW);
+    kode_motor_belakang = (int_kode_enkripsi-10000) / 1000;
+    kode_motor_depan = ((int_kode_enkripsi-10000) - (kode_motor_belakang * 1000)) / 100;
+    kode_kamera = ((int_kode_enkripsi-10000) - ((kode_motor_belakang * 1000) + (kode_motor_depan * 100)));
   }
   //    Serial.print(kode_motor_belakang);
   //    Serial.print("-");
   //    Serial.print(kode_motor_depan);
   //    Serial.print("-");
   //    Serial.println(kode_kamera);
-  }
+  
 
   //--------------------Motor Belakang-----------------
   if (kode_motor_belakang == 1) {

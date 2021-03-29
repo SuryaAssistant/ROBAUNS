@@ -3,6 +3,7 @@
 #----------------------------------------------Import Library(s)----------------------------------------------#
 
 from __future__ import print_function
+import sys
 #for Videostream
 import imutils
 from imutils.video import VideoStream
@@ -58,6 +59,7 @@ kode_motor_depan = 6
 kode_kamera = 13
 #-------------------------------------------End of Serial Protocol-------------------------------------------#
 
+
 #-----------------------------------------------Local Function-----------------------------------------------#
 def belakang_maju():
     global kode_motor_belakang
@@ -107,15 +109,16 @@ def detect_usb(port_number):
     global decode_usb
     
     with serial.Serial("/dev/ttyUSB{}".format(port_number), 9600, timeout=1) as detect_USB:
-        time.sleep(0.1) #wait serial to open
+        time.sleep(0.5) #wait serial to open
         print("Check USB{}".format(detect_USB.port))
 
         if detect_USB.isOpen():
-            #print("{} terkoneksi!".format(detect_USB.port))
+            print("{} terkoneksi!".format(detect_USB.port))
             
             check_port_cmd = "check"
             check_cmd = ("{}\n".format(check_port_cmd))
-            time.sleep(3)
+            time.sleep(5)
+            detect_USB.flushInput()
             detect_USB.write(check_cmd.encode('utf-8'))
         
             while detect_USB.inWaiting()==0: pass
@@ -127,72 +130,84 @@ def detect_usb(port_number):
 
 
 #-------------------------------------------Detect Arduino in USB-------------------------------------------#
+# number of Arduino that connect to Raspberry Pi
+total_usb = 3
+
+port_0 = 0
+port_1 = 0
+port_2 = 0
+
+# default reply from Arduino
+code_usb= ["default","default","default"]
+
+arduino_main_port = 4
+arduino_depan_port = 4
+arduino_belakang_port = 4
+
 times_usb = 0
+# detect USBPort
+print("Cek kelengkapan...")
+for x in range(total_usb):
+    detect_usb(x)
 
-detect_usb(0)
-while True:
-    if str(decode_usb) == "main" or str(decode_usb) == "depan" or str(decode_usb) == "belakang":
-        print("USB0 dikenali")
-        code_usb0 = decode_usb
-        break
-    else:
-        detect_usb(0)
-        times_usb += 1
-        if times_usb == 4:
-            times_usb = 0
+    while True:
+        if str(decode_usb) == "main" or str(decode_usb) == "depan" or str(decode_usb) == "belakang":
+            print ("USB{} berhasil dikenali".format(x))
+            code_usb = decode_usb
+
+            # determine usb port
+            if code_usb == "main" :
+                arduino_main_port = x
+            if code_usb == "depan" :
+                arduino_depan_port = x
+            if code_usb =="belakang" :
+                arduino_belakang_port = x
+                
+            # set port status
+            if x == 0:
+                port_0 = 1
+            if x == 1:
+                port_1 = 1
+            if x == 2:
+                port_2 = 1
+                
             break
 
+        else:
+            detect_usb(x)
+            times_usb += 1
+            if times_usb == 5:
+                times_usb = 0
+                break
+            
+# if there are two arduino detected
+if arduino_main_port == 4:
+    if port_0 == 1 and port_1 == 1:
+        arduino_main_port = 2
+    elif port_0 == 1 and port_2 == 1:
+        arduino_main_port = 1
+    elif port_1 == 1 and port_2 == 1:
+        arduino_main_port = 0
+        
+if arduino_depan_port == 4:
+    if port_0 == 1 and port_1 == 1:
+        arduino_depan_port = 2
+    elif port_0 == 1 and port_2 == 1:
+        arduino_depan_port = 1
+    elif port_1 == 1 and port_2 == 1:
+        arduino_depan_port = 0
+    
+if arduino_belakang_port == 4:
+    if port_0 == 1 and port_1 == 1:
+        arduino_belakang_port = 2
+    elif port_0 == 1 and port_2 == 1:
+        arduino_belakang_port = 1
+    elif port_1 == 1 and port_2 == 1:
+        arduino_belakang_port = 0
+        
 
-detect_usb(1)
-while True:
-    if str(decode_usb) == "main" or str(decode_usb) == "depan" or str(decode_usb) == "belakang":
-        print("USB1 dikenali")
-        code_usb1 = decode_usb
-        break
-    else:
-        detect_usb(1)
-        times_usb += 1
-        if times_usb == 4:
-            times_usb = 0
-            break
 
-
-detect_usb(2)
-while True:
-    if str(decode_usb) == "main" or str(decode_usb) == "depan" or str(decode_usb) == "belakang":
-        print("USB2 dikenali")
-        code_usb2 = decode_usb
-        break
-    else:
-        detect_usb(2)
-        times_usb += 1
-        if times_usb == 4:
-            times_usb = 0
-            break
-
-
-# determine usb port
-if code_usb0 == "main" :
-    arduino_main_port = 0
-if code_usb0 =="belakang" :
-    arduino_belakang_port = 0
-if code_usb0 == "depan" :
-    arduino_depan_port = 0
-
-if code_usb1 == "main" :
-    arduino_main_port = 1
-if code_usb1 =="belakang" :
-    arduino_belakang_port = 1
-if code_usb1 == "depan" :
-    arduino_depan_port = 1
-
-if code_usb2 == "main" :
-    arduino_main_port = 2
-if code_usb2 =="belakang" :
-    arduino_belakang_port = 2
-if code_usb2 == "depan" :
-    arduino_depan_port = 2
-
+# print the result
 print("\narduino main port USB{}".format(arduino_main_port))
 print("arduino sensor depan port USB{}".format(arduino_depan_port))
 print("arduino sensor belakang port USB{}".format(arduino_belakang_port))
@@ -206,7 +221,8 @@ f.write("%d \r\n" %arduino_depan_port) #port_arduino_depan
 f.write("%d \r\n" %arduino_belakang_port) #port arduino_belakang
 f.close()
 
-print("Konfigurasi port USB disimpan")
+print("Konfigurasi berhasil disimpan")
+
 #-----------------------------------------End Detect Arduino in USB-------------------------------------------#
 
 
@@ -295,7 +311,15 @@ while(True):
     camera_only_frame = imutils.resize(frame, width = width_camera_only)
 
 
-    kode_enkripsi = (kode_motor_belakang*1000)+(kode_motor_depan*100)+(kode_kamera)
+    # Send kontrol command code to Arduino
+    # Format --> example: "11413"
+    #        1             1               4          13
+    # [active_status] [back_motor] [steering_motor] [camera]
+    # 
+    # if active_status == 1, Arduino execute command code
+    # if active_status == 0, Arduino ignore the other command. It used when the robot accidently disconnected
+    #  
+    kode_enkripsi = 10000+(kode_motor_belakang*1000)+(kode_motor_depan*100)+(kode_kamera)
     string_kode = str(kode_enkripsi)
     send_string = ("{}\n".format(string_kode))
     ser_main.write(send_string.encode('utf-8'))
@@ -304,7 +328,7 @@ while(True):
     kode_motor_depan = 6
     kode_kamera = 13
     
-    print(send_string.encode('utf-8'))
+    #print(send_string.encode('utf-8'))
 
 
     # panggil serial setiap counter = 5
@@ -453,17 +477,17 @@ while(True):
     if key == ord("w") or key == 65362 or key == 82:
         belakang_maju()
         status_robot = "maju"
-        print("UP")
+        #print("UP")
     elif key == ord("s") or key == 65634 or key == 84:
         belakang_mundur()
         status_robot = "mundur"
-        print("DOWN")
+        #print("DOWN")
     elif key == ord("d") or key == 65363 or key == 83:
         depan_kanan()
-        print("RIGHT")
+        #print("RIGHT")
     elif key == ord("a") or key == 65361 or key == 81:
         depan_kiri()
-        print("LEFT")        
+        #print("LEFT")        
     elif key == ord("x") or key == ord(" "):
         belakang_diam()
         status_robot = "diam"
@@ -492,7 +516,9 @@ while(True):
 
 
 print("Menutup Aplikasi ...")
+
 cv2.destroyAllWindows()
 vs.stop()
-
+sys.exit()
 #subprocess.Popen(["pkill", "python3"], stdout=PIPE, stderr=PIPE)
+

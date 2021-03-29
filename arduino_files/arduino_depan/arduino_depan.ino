@@ -40,7 +40,7 @@ void loop() {
     string_kode_enkripsi = Serial.readStringUntil('\n');
   }
 
-  if (string_kode_enkripsi == "main") {
+  if (string_kode_enkripsi == "check") {
     //Kirim balasan
     Serial.println("depan");
     Serial.flush();
