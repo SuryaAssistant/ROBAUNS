@@ -1,8 +1,14 @@
+/*
+ * This program used to control the motors of robot
+ * Upload this program to arduino on top of raspberry pi
+ */
+
 //PWM = 3, 5, 6, 9, 10, 11 ; 5&6
 //Non-PWM = 0, 1, 2, 4, 7, 8, 12, 13
 
 //R_EN and L_EN using the same pin
 
+#define LED 13
 
 //Motor Depan
 #define dpn_RPWM 3
@@ -13,7 +19,6 @@
 #define blkg_RPWM 6
 #define blkg_EN 9
 #define blkg_LPWM 11
-
 
 //Servo
 #include<Servo.h>
@@ -33,6 +38,7 @@ int i;
 // 11 = kamera ke kiri 30 derajat
 // 12 = kamera ke tengah
 // 13 = kamera diam
+
 
 int kode_motor_belakang = 3;
 int kode_motor_depan = 6;
@@ -64,9 +70,11 @@ void setup() {
   pinMode(blkg_EN, OUTPUT);
   pinMode(blkg_LPWM, OUTPUT);
 
+  pinMode(LED, OUTPUT);
+
   //Kamera_servo
   kamera_servo.attach(servo_pin);
-  //Set servo 0 degree
+  //Set servo 90 degree
   kamera_servo.write(kamera_posisi);
 
   //Setting awal pin LOW
@@ -82,27 +90,37 @@ void setup() {
 void loop() {
 
   // Read serial from Raspberry Pi
-  if (serial.available() == 0){
-    kode_motor_belakang = 3
-    kode_motor_depan = 6
-    kode_kamera = 13
-  }
-  
   if (Serial.available()) {
-
     string_kode_enkripsi = Serial.readStringUntil('\n');
+  }
+
+  //--------------------Ping dan Dekripsi-----------------
+  
+  if (string_kode_enkripsi == "main") {
+    //Kirim balasan
+    Serial.println("depan");
+    Serial.flush();
+    digitalWrite(LED, HIGH);
+    delay(500);
+    digitalWrite(LED, LOW);
+  }
+
+  if (string_kode_enkripsi != "check") {
+
+    // ubah ke integer
     int_kode_enkripsi = string_kode_enkripsi.toInt();
 
     // dekripsi
     kode_motor_belakang = int_kode_enkripsi / 1000;
     kode_motor_depan = (int_kode_enkripsi - (kode_motor_belakang * 1000)) / 100;
     kode_kamera = (int_kode_enkripsi - ((kode_motor_belakang * 1000) + (kode_motor_depan * 100)));
-
-    //    Serial.print(kode_motor_belakang);
-    //    Serial.print("-");
-    //    Serial.print(kode_motor_depan);
-    //    Serial.print("-");
-    //    Serial.println(kode_kamera);
+    digitalWrite(LED, LOW);
+  }
+  //    Serial.print(kode_motor_belakang);
+  //    Serial.print("-");
+  //    Serial.print(kode_motor_depan);
+  //    Serial.print("-");
+  //    Serial.println(kode_kamera);
   }
 
   //--------------------Motor Belakang-----------------
@@ -137,9 +155,9 @@ void loop() {
   }
 
   if (kode_kamera == 11) {
-    kamera_servo.write(kamera_posisi + ubah_posisi_kamera);
+    kamera_servo.write(kamera_posisi - ubah_posisi_kamera);
     //save position
-    kamera_posisi = kamera_posisi + ubah_posisi_kamera;
+    kamera_posisi = kamera_posisi - ubah_posisi_kamera;
   }
 
   if (kode_kamera == 12) {
@@ -174,14 +192,14 @@ void kanan() {
   digitalWrite(dpn_EN, HIGH);
   analogWrite(dpn_RPWM, 125);
   analogWrite(dpn_LPWM, 0);
-  delay(500);
+  //delay(500);
 }
 
 void kiri() {
   digitalWrite(dpn_EN, HIGH);
   analogWrite(dpn_RPWM, 0);
   analogWrite(dpn_LPWM, 125);
-  delay(500);
+  //delay(500);
 }
 
 /*

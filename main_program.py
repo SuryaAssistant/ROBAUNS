@@ -28,20 +28,17 @@ import datetime
 import serial
 
 #------------------------------------------End of Import  Library(s)------------------------------------------#
-
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
-
-print("Loading...")
+print("Sedang Memuat...")
 sleep(1.00)
 
-print("Start")
-
+print("Mulai")
 
 #-----------------------------------------------Serial Protocol-----------------------------------------------#
-
 # kode status perintah raspi
+
 # 1 = motor belakang maju
 # 2 = motor belakang mundur
 # 3 = motor belakang diam
@@ -59,11 +56,9 @@ print("Start")
 kode_motor_belakang = 3
 kode_motor_depan = 6
 kode_kamera = 13
-
 #-------------------------------------------End of Serial Protocol-------------------------------------------#
 
 #-----------------------------------------------Local Function-----------------------------------------------#
-
 def belakang_maju():
     global kode_motor_belakang
     kode_motor_belakang = 1
@@ -107,7 +102,114 @@ def kamera_diam():
 def buka_pintu():
     subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/IR_Transmit.py"], stdout=PIPE, stderr=PIPE)
 
+# detect arduino port posistion in raspberry pi
+def detect_usb(port_number):
+    global decode_usb
+    
+    with serial.Serial("/dev/ttyUSB{}".format(port_number), 9600, timeout=1) as detect_USB:
+        time.sleep(0.1) #wait serial to open
+        print("Check USB{}".format(detect_USB.port))
+
+        if detect_USB.isOpen():
+            #print("{} terkoneksi!".format(detect_USB.port))
+            
+            check_port_cmd = "check"
+            check_cmd = ("{}\n".format(check_port_cmd))
+            time.sleep(3)
+            detect_USB.write(check_cmd.encode('utf-8'))
+        
+            while detect_USB.inWaiting()==0: pass
+            if detect_USB.inWaiting():
+                answer=detect_USB.readline()
+                decode_usb = answer.decode('utf-8').rstrip()
+                detect_USB.flushInput()
 #-------------------------------------------End of Local Function-------------------------------------------#
+
+
+#-------------------------------------------Detect Arduino in USB-------------------------------------------#
+times_usb = 0
+
+detect_usb(0)
+while True:
+    if str(decode_usb) == "main" or str(decode_usb) == "depan" or str(decode_usb) == "belakang":
+        print("USB0 dikenali")
+        code_usb0 = decode_usb
+        break
+    else:
+        detect_usb(0)
+        times_usb += 1
+        if times_usb == 4:
+            times_usb = 0
+            break
+
+
+detect_usb(1)
+while True:
+    if str(decode_usb) == "main" or str(decode_usb) == "depan" or str(decode_usb) == "belakang":
+        print("USB1 dikenali")
+        code_usb1 = decode_usb
+        break
+    else:
+        detect_usb(1)
+        times_usb += 1
+        if times_usb == 4:
+            times_usb = 0
+            break
+
+
+detect_usb(2)
+while True:
+    if str(decode_usb) == "main" or str(decode_usb) == "depan" or str(decode_usb) == "belakang":
+        print("USB2 dikenali")
+        code_usb2 = decode_usb
+        break
+    else:
+        detect_usb(2)
+        times_usb += 1
+        if times_usb == 4:
+            times_usb = 0
+            break
+
+
+# determine usb port
+if code_usb0 == "main" :
+    arduino_main_port = 0
+if code_usb0 =="belakang" :
+    arduino_belakang_port = 0
+if code_usb0 == "depan" :
+    arduino_depan_port = 0
+
+if code_usb1 == "main" :
+    arduino_main_port = 1
+if code_usb1 =="belakang" :
+    arduino_belakang_port = 1
+if code_usb1 == "depan" :
+    arduino_depan_port = 1
+
+if code_usb2 == "main" :
+    arduino_main_port = 2
+if code_usb2 =="belakang" :
+    arduino_belakang_port = 2
+if code_usb2 == "depan" :
+    arduino_depan_port = 2
+
+print("\narduino main port USB{}".format(arduino_main_port))
+print("arduino sensor depan port USB{}".format(arduino_depan_port))
+print("arduino sensor belakang port USB{}".format(arduino_belakang_port))
+
+# save usb port to usb_port_config.txt
+print("Menyimpan konfigurasi")
+
+f = open("usb_port_config.txt","w")
+f.write("%d \r\n" %arduino_main_port) #port_arduino_main
+f.write("%d \r\n" %arduino_depan_port) #port_arduino_depan
+f.write("%d \r\n" %arduino_belakang_port) #port arduino_belakang
+f.close()
+
+print("Konfigurasi port USB disimpan")
+#-----------------------------------------End Detect Arduino in USB-------------------------------------------#
+
+
 
 status_robot = "diam"
 
@@ -154,10 +256,6 @@ us_kanan_blk = default_num
 width_camera_only = 700
 height_camera_only = int((width_camera_only/1280)*720)
 
-width_camera_status = 600
-
-width_camera_copy = 800
-height_camera_copy = int((width_camera_copy/1280)*720)
 
 #data serial awal
 data_depan = [0, 0, default_num, default_num, default_num]
@@ -168,14 +266,13 @@ data_belakang = [default_num, default_num, default_num]
 # set counter_serial = 0 untuk reset counter pembacaan serial
 counter_serial = 0
 
-
 # pemanggilan serial
 subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/serial_arduino_depan.py"], stdout=PIPE, stderr=PIPE)
 subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/serial_arduino_belakang.py"], stdout=PIPE, stderr=PIPE)
 
 # send and receive data to main arduino
 ser_main = serial.Serial(
-   port='/dev/ttyUSB0',
+   port='/dev/ttyUSB{}'.format(arduino_main_port),
    baudrate = 9600,
    parity=serial.PARITY_NONE,
    stopbits=serial.STOPBITS_ONE,
@@ -194,9 +291,7 @@ while(True):
     frame = imutils.resize(frame, width=600)
     
     # resize from real
-    # for camera_copy (800p)
-    frame_copy = imutils.resize(frame, width = width_camera_copy)
-    #for camera_only (7000)
+    # for camera_only (7000)
     camera_only_frame = imutils.resize(frame, width = width_camera_only)
 
 
@@ -223,7 +318,7 @@ while(True):
             #detect and correction if data can't read
             #read data depan = k
             #non-read data depan = j
-            j = 5 - k
+            j = 3 - k
 
             #print read data with their value
             for i in range(k):
@@ -238,11 +333,11 @@ while(True):
 
             #print(data)
             if j != 0:
-                x_enc = data_depan[0]
-                enc_pos = data_depan[1]
-                us_kiri_dpn = data_depan[2]
-                us_tengah_dpn = data_depan[3]
-                us_kanan_dpn = data_depan[4]
+                #x_enc = data_depan[0]
+                #enc_pos = data_depan[1]
+                us_kiri_dpn = data_depan[0]
+                us_tengah_dpn = data_depan[1]
+                us_kanan_dpn = data_depan[2]
                         
         with open("/home/pi/RoboCov19UNS/data_serial_belakang.txt", "r", encoding = "utf-8") as h:
             data_serial_belakang = list(map(int, h.readlines()))
@@ -253,7 +348,7 @@ while(True):
             #detect and correction if data can't read
             #read data depan = m
             #non-read data depan = n
-            n = 5 - m
+            n = 3 - m
 
             #print read data with their value
             for l in range(m):
@@ -271,73 +366,59 @@ while(True):
                 us_kiri_blk = data_belakang[0]
                 us_tengah_blk = data_belakang[1]
                 us_kanan_blk = data_belakang[2]
-
-
-        # Kondisi di layar
-        # us_depan
-        if us_tengah_dpn <= 50:
-            us_d_tengah = bahaya
-        if us_tengah_dpn > 50:
-            us_d_tengah = aman
-        if us_kanan_dpn <= 30:
-            us_d_kanan = bahaya
-        if us_kanan_dpn > 30:
-            us_d_kanan = aman
-        if us_kiri_dpn <=30:
-            us_d_kiri = bahaya
-        if us_kiri_dpn > 30:
-            us_d_kiri = aman
-
-        # us_belakang
-        if us_tengah_blk <= 50:
-            us_b_tengah = bahaya
-        if us_tengah_blk > 50:
-            us_b_tengah = aman
-        if us_kanan_blk <= 30:
-            us_b_kanan = bahaya
-        if us_kanan_blk > 30:
-            us_b_kanan = aman
-        if us_kiri_blk <=30:
-            us_b_kiri = bahaya
-        if us_kiri_blk > 30:
-            us_b_kiri = aman
-        
-
-        # fungsi autostop
-        # jika  robot mendeteksi benda
-        if status_robot == "maju":
-            if us_tengah_dpn <= 50 :
-                belakang_mundur()
-                status_robot = "diam"
-            
-        if status_robot == "mundur":
-            if us_tengah_blk <= 50 :
-                belakang_diam()
-                status_robot = "diam"
         
         # reset counter
         counter_serial = 0
+        
+    # menambah counter
+    counter_serial += 1
 
-    # status_us_depan
+    # Kondisi di layar
+    # us_depan
+    if us_tengah_dpn <= 50:
+        us_d_tengah = bahaya
+    if us_tengah_dpn > 50:
+        us_d_tengah = aman
+    if us_kanan_dpn <= 30:
+        us_d_kanan = bahaya
+    if us_kanan_dpn > 30:
+        us_d_kanan = aman
+    if us_kiri_dpn <=30:
+        us_d_kiri = bahaya
+    if us_kiri_dpn > 30:
+        us_d_kiri = aman
+
+    # us_belakang
+    if us_tengah_blk <= 50:
+        us_b_tengah = bahaya
+    if us_tengah_blk > 50:
+        us_b_tengah = aman
+    if us_kanan_blk <= 30:
+        us_b_kanan = bahaya
+    if us_kanan_blk > 30:
+        us_b_kanan = aman
+    if us_kiri_blk <=30:
+        us_b_kiri = bahaya
+    if us_kiri_blk > 30:
+        us_b_kiri = aman
+    
+
+    # fungsi autostop
+    # jika  robot mendeteksi benda
+    if status_robot == "maju":
+        if us_tengah_dpn <= 50 :
+            belakang_diam()
+            status_robot = "diam"
+        
+    if status_robot == "mundur":
+        if us_tengah_blk <= 50 :
+            belakang_diam()
+            status_robot = "diam"
+
+
+
     font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.rectangle(frame_copy,(0, 0),(300, 10),us_d_kiri,20)
-    cv2.rectangle(frame_copy,(500, 0),(800, 10),us_d_kanan,20)
-    cv2.rectangle(frame_copy,(400-150, 0),(400+150, 20),us_d_tengah,30)
-    cv2.putText(frame_copy,'{}'.format(us_kiri_dpn),(50,15), font, 0.6,(255,255,255),2,cv2.LINE_AA)
-    cv2.putText(frame_copy,'{}'.format(us_tengah_dpn),(385,15), font, 0.6,(255,255,255),2,cv2.LINE_AA)
-    cv2.putText(frame_copy,'{}'.format(us_kanan_dpn),(700,15), font, 0.6,(255,255,255),2,cv2.LINE_AA)
 
-    # status_us_belakang
-    cv2.rectangle(frame_copy,(0, height_camera_copy-10),(300, height_camera_copy),us_b_kiri,20)
-    cv2.rectangle(frame_copy,(500, height_camera_copy-10),(800, height_camera_copy),us_b_kanan,20)
-    cv2.rectangle(frame_copy,(400-150, height_camera_copy-20),(400+150, height_camera_copy),us_b_tengah,30)
-    cv2.putText(frame_copy,'{}'.format(us_kiri_blk),(50,height_camera_copy-5), font, 0.6,(255,255,255),2,cv2.LINE_AA)
-    cv2.putText(frame_copy,'{}'.format(us_tengah_blk),(385,height_camera_copy-15), font, 0.6,(255,255,255),2,cv2.LINE_AA)
-    cv2.putText(frame_copy,'{}'.format(us_kanan_blk),(700,height_camera_copy-5), font, 0.6,(255,255,255),2,cv2.LINE_AA)
-    
-    cv2.putText(frame_copy,'Robot {}'.format(status_robot),(10,50), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-    #cv2.putText(frame_copy,'Encoder {}'.format(encoder_dpn),(10,70), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-    
     # info tab
     cv2.putText(camera_only_frame,'W ~ Maju',(10,height_camera_only-130), font, 0.6,(255,255,255),1,cv2.LINE_AA)
     cv2.putText(camera_only_frame,'S ~ Mundur',(10,height_camera_only - 110), font, 0.6,(255,255,255),1,cv2.LINE_AA)
@@ -350,22 +431,13 @@ while(True):
     cv2.putText(camera_only_frame,'M ~ Buka pintu',(width_camera_only-155, height_camera_only-30), font, 0.6,(255,255,255),1,cv2.LINE_AA)
     cv2.putText(camera_only_frame,'{}'.format(datetime.datetime.now()),(width_camera_only - 222, height_camera_only -10), font, 0.6,(255,255,255),1,cv2.LINE_AA)
 
-    cv2.putText(frame_copy,'{}'.format(counter_serial),(775,50), font, 0.5,(255,255,255),1,cv2.LINE_AA)
 
     # show image
     # Frame asli
-    #cv2.imshow("Frame", frame)
-    #cv2.imshow("Copy", frame_copy)
+    #cv2.imshow("Frame Asli", frame)
     
     # hanya tangkapan kamera
     cv2.imshow("Kamera_view", camera_only_frame)
-    
-    # Pengecilan 2x dari "Frame asli" (width=400)
-    status_frame = imutils.resize(frame_copy, width=width_camera_status)
-    #cv2.imshow("Status", status_frame)
-    
-    # menambah counter
-    counter_serial = counter_serial+1
 
     # baca keyboard
     # when use raspi, use cv2.waitKey(1) instead of cv2.waitKeyEx(1)
@@ -409,13 +481,15 @@ while(True):
         
     elif key == ord("m"): #buka pintu
         buka_pintu()
+    elif key == ord("q"):
+        break
+
     else:
         belakang_diam()
         depan_diam()
         kamera_diam()
                 
-    if key == ord("q"):
-        break
+
 
 print("Menutup Aplikasi ...")
 cv2.destroyAllWindows()
