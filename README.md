@@ -25,11 +25,9 @@ Robot menggunakan Raspberry Pi 3B+ sebagai komputer pengontrol robot serta mengg
 
 <br>
 
-## How To Install
+## Cara Install
 
-Copy the command below and paste into Raspberry Pi terminal
-
-<br>
+Salin _command_ di bawah dan tempel di terminal Raspberry Pi
 
 ### Update
 
@@ -40,9 +38,7 @@ sudo apt-get update
 sudo apt-get upgrade
 ```
 
-<br>
-
-### Instal 
+### Instal _Dependency(s)_
 ```
 sudo apt-get install build-essential cmake pkg-config
 ```
@@ -80,9 +76,7 @@ wget https://bootstrap.pypa.io/get-pip.py
 sudo python3 get-pip.py 
 ```
 
-<br>
-
-### Install OpenCV
+### Instal OpenCV
 ```
 sudo pip3 install opencv-contrib-python==3.4.6.27
 ```
@@ -90,6 +84,10 @@ sudo pip3 install opencv-contrib-python==3.4.6.27
 pip install imutils
 ```
 
-<br>
+### Clone Github Repository
+Buka terminal dan ketik
+```
+git clone https://github.com/robotcovid19uns/RoboCov19UNS
+```
 
-Run `main_program.py`
+Masuk ke dalam folder `RoboCov19UNS` dan kemudian jalankan `main_program.py`
