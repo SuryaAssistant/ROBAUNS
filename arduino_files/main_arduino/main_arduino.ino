@@ -1,7 +1,7 @@
 /*
- * This program used to control the motors of robot
- * Upload this program to arduino on top of raspberry pi
- */
+   This program used to control the motors of robot
+   Upload this program to arduino on top of raspberry pi
+*/
 
 //PWM = 3, 5, 6, 9, 10, 11 ; 5&6
 //Non-PWM = 0, 1, 2, 4, 7, 8, 12, 13
@@ -45,7 +45,7 @@ int kode_motor_depan = 6;
 int kode_kamera = 13;
 
 int kamera_posisi = 90; //derajat
-int ubah_posisi_kamera = 15; //derajat
+int ubah_posisi_kamera = 30; //derajat
 
 //battery
 const int battery_input_pin = A3;
@@ -76,6 +76,7 @@ void setup() {
   kamera_servo.attach(servo_pin);
   //Set servo 90 degree
   kamera_servo.write(kamera_posisi);
+  delay(15);
 
   //Setting awal pin LOW
   digitalWrite(dpn_EN, LOW);
@@ -95,7 +96,7 @@ void loop() {
   }
 
   //--------------------Ping dan Dekripsi-----------------
-  
+
   if (string_kode_enkripsi == "check") {
     //Kirim balasan
     Serial.println("main");
@@ -111,16 +112,16 @@ void loop() {
     int_kode_enkripsi = string_kode_enkripsi.toInt();
     // contoh 11413
     // dekripsi
-    kode_motor_belakang = (int_kode_enkripsi-10000) / 1000;
-    kode_motor_depan = ((int_kode_enkripsi-10000) - (kode_motor_belakang * 1000)) / 100;
-    kode_kamera = ((int_kode_enkripsi-10000) - ((kode_motor_belakang * 1000) + (kode_motor_depan * 100)));
+    kode_motor_belakang = (int_kode_enkripsi - 10000) / 1000;
+    kode_motor_depan = ((int_kode_enkripsi - 10000) - (kode_motor_belakang * 1000)) / 100;
+    kode_kamera = ((int_kode_enkripsi - 10000) - ((kode_motor_belakang * 1000) + (kode_motor_depan * 100)));
   }
   //    Serial.print(kode_motor_belakang);
   //    Serial.print("-");
   //    Serial.print(kode_motor_depan);
   //    Serial.print("-");
   //    Serial.println(kode_kamera);
-  
+
 
   //--------------------Motor Belakang-----------------
   if (kode_motor_belakang == 1) {
@@ -148,31 +149,35 @@ void loop() {
 
   //-----------------------Kamera------------------
   if (kode_kamera == 10) {
-    kamera_servo.write(kamera_posisi + ubah_posisi_kamera);
-    //save position
+
     kamera_posisi = kamera_posisi + ubah_posisi_kamera;
+    kamera_servo.write(kamera_posisi);
+    delay(15);
   }
 
   if (kode_kamera == 11) {
-    kamera_servo.write(kamera_posisi - ubah_posisi_kamera);
-    //save position
     kamera_posisi = kamera_posisi - ubah_posisi_kamera;
+    kamera_servo.write(kamera_posisi);
+    delay(15);
   }
 
   if (kode_kamera == 12) {
-    kamera_servo.write(90);
+    kamera_posisi = 90;
+    kamera_servo.write(kamera_posisi);
+    delay(15);
   }
 
   if (kode_kamera == 13) {
     kamera_servo.write(kamera_posisi);
+    delay(15);
   }
 
   //-----------------------Baterai------------------
   battery_input_value = analogRead(battery_input_pin);
   //Konversi ADC ke nilai tegangan
   //Convert battery value to percent
-  //max = V (~ADC value); min = V (ADC value);
-  battery_percent = map(battery_input_value, 824, 688, 100, 0);
+  //max = 13,2V 3,3V()(~ADC value = 675); min = 12,6V 3,15V(~ADC value = 645);
+  battery_percent = map(battery_input_value, 675, 645, 100, 0);
   //set battery to max 100%
 
   if (battery_percent > 100) {
@@ -189,16 +194,16 @@ void loop() {
 */
 void kanan() {
   digitalWrite(dpn_EN, HIGH);
-  analogWrite(dpn_RPWM, 125);
-  analogWrite(dpn_LPWM, 0);
-  //delay(500);
+  analogWrite(dpn_RPWM, 0);
+  analogWrite(dpn_LPWM, 125);
+  delay(50);
 }
 
 void kiri() {
   digitalWrite(dpn_EN, HIGH);
-  analogWrite(dpn_RPWM, 0);
-  analogWrite(dpn_LPWM, 125);
-  //delay(500);
+  analogWrite(dpn_RPWM, 125);
+  analogWrite(dpn_LPWM, 0);
+  delay(50);
 }
 
 /*
@@ -207,16 +212,16 @@ void kiri() {
 
 void maju() {
   digitalWrite(blkg_EN, HIGH);
-  analogWrite(blkg_RPWM, 125);
-  analogWrite(blkg_LPWM, 0);
-
+  analogWrite(blkg_RPWM, 0);
+  analogWrite(blkg_LPWM, 125);
+  delay(50);
 }
 
 void mundur() {
   digitalWrite(blkg_EN, HIGH);
-  analogWrite(blkg_RPWM, 0);
-  analogWrite(blkg_LPWM, 125);
-
+  analogWrite(blkg_RPWM, 125);
+  analogWrite(blkg_LPWM, 0);
+  delay(50);
 }
 
 /*

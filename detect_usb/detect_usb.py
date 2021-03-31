@@ -6,6 +6,7 @@
 
 import time
 import serial
+import sys
 
 # number of Arduino that connect to Raspberry Pi
 total_usb = 3
@@ -17,6 +18,9 @@ port_2 = 0
 # default reply from Arduino
 code_usb= ["default","default","default"]
 
+# set port number to prevent "unread USBx"
+# if port number == USB4, this mean raspi can't recognize
+# the arduino
 arduino_main_port = 4
 arduino_depan_port = 4
 arduino_belakang_port = 4
@@ -44,7 +48,6 @@ def detect_usb(port_number):
                 detect_USB.flushInput()
         else:
             print("{} tidak terhubung!".format(detect_USB.port))
-
 
 times_usb = 0
 
@@ -124,3 +127,5 @@ f.write("%d \r\n" %arduino_belakang_port) #port arduino_belakang
 f.close()
 
 print("Konfigurasi port USB disimpan")
+
+sys.exit()
