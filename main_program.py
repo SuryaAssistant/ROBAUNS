@@ -105,7 +105,7 @@ def buka_pintu():
     subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/IR_Transmit.py"], stdout=PIPE, stderr=PIPE)
 
 # detect arduino port posistion in raspberry pi
-def detect_usb(port_number):
+def detect_usb(port_number, pesan):
     global decode_usb
     
     with serial.Serial("/dev/ttyUSB{}".format(port_number), 9600, timeout=1) as detect_USB:
@@ -115,7 +115,8 @@ def detect_usb(port_number):
         if detect_USB.isOpen():
             print("{} terkoneksi!".format(detect_USB.port))
             
-            check_port_cmd = "check"
+            #check_port_cmd = "check"
+            check_port_cmd = pesan
             check_cmd = ("{}\n".format(check_port_cmd))
             time.sleep(5)
             detect_USB.flushInput()
@@ -126,12 +127,19 @@ def detect_usb(port_number):
                 answer=detect_USB.readline()
                 decode_usb = answer.decode('utf-8').rstrip()
                 detect_USB.flushInput()
+        else:
+            print("{} tidak terhubung!".format(detect_USB.port))
+
 #-------------------------------------------End of Local Function-------------------------------------------#
 
 
 #-------------------------------------------Detect Arduino in USB-------------------------------------------#
 # number of Arduino that connect to Raspberry Pi
 total_usb = 3
+
+# message comand
+cek = "check"
+selesai = "done"
 
 port_0 = 0
 port_1 = 0
@@ -140,19 +148,27 @@ port_2 = 0
 # default reply from Arduino
 code_usb= ["default","default","default"]
 
+# set port number to prevent "unread USBx"
+# if port number == USB4, this mean raspi can't recognize
+# the arduino
 arduino_main_port = 4
 arduino_depan_port = 4
 arduino_belakang_port = 4
 
 times_usb = 0
 # detect USBPort
-print("Cek kelengkapan...")
+print("Cek kelengkapan perangkat...")
 for x in range(total_usb):
-    detect_usb(x)
+    detect_usb(x, cek)
 
     while True:
         if str(decode_usb) == "main" or str(decode_usb) == "depan" or str(decode_usb) == "belakang":
             print ("USB{} berhasil dikenali".format(x))
+
+            # send "end" message
+            detect_usb(x, selesai)
+            print ("Checking USB{} selesai".format(x))
+
             code_usb = decode_usb
 
             # determine usb port
@@ -174,7 +190,7 @@ for x in range(total_usb):
             break
 
         else:
-            detect_usb(x)
+            detect_usb(x, cek)
             times_usb += 1
             if times_usb == 5:
                 times_usb = 0
@@ -204,8 +220,6 @@ if arduino_belakang_port == 4:
         arduino_belakang_port = 1
     elif port_1 == 1 and port_2 == 1:
         arduino_belakang_port = 0
-        
-
 
 # print the result
 print("\narduino main port USB{}".format(arduino_main_port))
@@ -224,8 +238,6 @@ f.close()
 print("Konfigurasi berhasil disimpan")
 
 #-----------------------------------------End Detect Arduino in USB-------------------------------------------#
-
-
 
 status_robot = "diam"
 
@@ -507,12 +519,11 @@ while(True):
         buka_pintu()
     elif key == ord("q"):
         break
-
+ 
     else:
         belakang_diam()
         depan_diam()
         kamera_diam()
-                
 
 
 print("Menutup Aplikasi ...")
@@ -521,4 +532,3 @@ cv2.destroyAllWindows()
 vs.stop()
 sys.exit()
 #subprocess.Popen(["pkill", "python3"], stdout=PIPE, stderr=PIPE)
-
