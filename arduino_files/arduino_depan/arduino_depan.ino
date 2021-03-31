@@ -18,6 +18,9 @@ long duration, distance, Sensor1, Sensor2, Sensor3;
 
 String string_kode_enkripsi;
 
+// Set that this arduino didnt detect usb number yet
+int detect_usbx_status = 0;
+
 void setup() {
   Serial.begin(9600);   //Serial Port Baudrate: 9600 (jangan diubah)
 
@@ -33,40 +36,49 @@ void setup() {
 
 void loop() {
 
-  //--------------------Detect USBx-----------------
-  
-  // Read serial from Raspberry Pi
-  if (Serial.available()) {
-    string_kode_enkripsi = Serial.readStringUntil('\n');
+  if (detect_usbx_status == 0)
+  {
+    //--------------------Detect USBx-----------------
+    // Read serial from Raspberry Pi
+    if (Serial.available()) {
+      string_kode_enkripsi = Serial.readStringUntil('\n');
+    }
+
+    if (string_kode_enkripsi == "check") {
+      //Kirim balasan
+      Serial.println("depan");
+      Serial.flush();
+      digitalWrite(LED, HIGH);
+      delay(500);
+      digitalWrite(LED, LOW);
+    }
+    
+    if (string_kode_enkripsi == "done") {
+      detect_usbx_status = 1;
+    }
   }
 
-  if (string_kode_enkripsi == "check") {
-    //Kirim balasan
-    Serial.println("depan");
-    Serial.flush();
-    digitalWrite(LED, HIGH);
-    delay(500);
-    digitalWrite(LED, LOW);
+  if (detect_usbx_status == 1)
+  {
+    //kiri
+    SonarSensor(trigPin1, echoPin1);
+    Sensor1 = distance;
+
+    //tengah
+    SonarSensor(trigPin2, echoPin2);
+    Sensor2 = distance;
+
+    //kanan
+    SonarSensor(trigPin3, echoPin3);
+    Sensor3 = distance;
+
+    //Send ultrasonic value to Raspberry Pi
+    Serial.print(Sensor1);
+    Serial.print(",");
+    Serial.print(Sensor2);
+    Serial.print(",");
+    Serial.println(Sensor3);
   }
-
-  //kiri
-  SonarSensor(trigPin1, echoPin1);
-  Sensor1 = distance;
-
-  //tengah
-  SonarSensor(trigPin2, echoPin2);
-  Sensor2 = distance;
-
-  //kanan
-  SonarSensor(trigPin3, echoPin3);
-  Sensor3 = distance;
-
-  //Send ultrasonic value to Raspberry Pi
-  Serial.print(Sensor1);
-  Serial.print(",");
-  Serial.print(Sensor2);
-  Serial.print(",");
-  Serial.println(Sensor3);
 }
 
 void SonarSensor(int trigPin, int echoPin)
