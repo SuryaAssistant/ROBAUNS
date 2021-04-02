@@ -1,0 +1,6 @@
+Change Log
+
+1 April 2021 :
+    - Reverse kamera_kanan dengan kamera_kiri
+    - Add "end message"
+    - Add explanation of how USBx Detect works

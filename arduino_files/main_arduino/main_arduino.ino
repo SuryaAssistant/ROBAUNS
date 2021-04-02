@@ -57,6 +57,9 @@ int battery_percent;
 String string_kode_enkripsi;
 int int_kode_enkripsi;
 
+int motor_pwm = 125;
+int prev_motor_belakang = 3;
+
 void setup() {
   Serial.begin(9600);
 
@@ -125,16 +128,39 @@ void loop() {
 
   //--------------------Motor Belakang-----------------
   if (kode_motor_belakang == 1) {
+    // If previous kode_motor_belakang == 1 and kode_motor_belakang now == 1,
+    // increase the motor's pwm signal.
+    // else, reset the pwm motor
+    if (prev_motor_belakang == 1)
+    {
+      motor_pwm = motor_pwm + 5;
+      // limit the pwm
+      if (motor_pwm >= 200)
+      {
+        motor_pwm = 200;
+      }
+    }
+
+    else
+    {
+      motor_pwm = 125;
+    }
+
     maju();
   }
 
   if (kode_motor_belakang == 2) {
+    motor_pwm = 125;
     mundur();
   }
 
   if (kode_motor_belakang == 3) {
     blkg_diam();
   }
+
+
+
+  prev_motor_belakang = kode_motor_belakang;
 
   //-------------------Motor Depan------------------
   if (kode_motor_depan == 4) {
@@ -213,13 +239,13 @@ void kiri() {
 void maju() {
   digitalWrite(blkg_EN, HIGH);
   analogWrite(blkg_RPWM, 0);
-  analogWrite(blkg_LPWM, 125);
+  analogWrite(blkg_LPWM, motor_pwm);
   delay(50);
 }
 
 void mundur() {
   digitalWrite(blkg_EN, HIGH);
-  analogWrite(blkg_RPWM, 125);
+  analogWrite(blkg_RPWM, motor_pwm);
   analogWrite(blkg_LPWM, 0);
   delay(50);
 }
