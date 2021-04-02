@@ -48,8 +48,8 @@ print("Mulai")
 # 5 = motor depan kiri
 # 6 = motor depan diam
 
-# 10 = kamera ke kanan 30 derajat
-# 11 = kamera ke kiri 30 derajat
+# 11 = kamera ke kanan x derajat
+# 10 = kamera ke kiri x derajat
 # 12 = kamera ke tengah
 # 13 = kamera diam
 
@@ -87,11 +87,11 @@ def depan_diam():
 
 def kamera_kanan():
     global kode_kamera
-    kode_kamera = 10
+    kode_kamera = 11
 
 def kamera_kiri():
     global kode_kamera
-    kode_kamera = 11
+    kode_kamera = 10
 
 def kamera_tengah():
     global kode_kamera
@@ -115,7 +115,6 @@ def detect_usb(port_number, pesan):
         if detect_USB.isOpen():
             print("{} terkoneksi!".format(detect_USB.port))
             
-            #check_port_cmd = "check"
             check_port_cmd = pesan
             check_cmd = ("{}\n".format(check_port_cmd))
             time.sleep(5)
@@ -134,6 +133,23 @@ def detect_usb(port_number, pesan):
 
 
 #-------------------------------------------Detect Arduino in USB-------------------------------------------#
+#
+# Simple explanation of how it works
+#
+#                      ---------------------                           ---------------
+#                      |   Raspberry Pi    |                           |   Arduino   |
+#                      ---------------------                           ---------------
+#                                           
+# Step 1 (Checking):       Send "check"           ----USBx---->        
+# Step 2           :                                                    Get "check"
+# Step 3 (ACK)     :                              <---ANSWER---  Send "main"/"depan"/"belakang"
+# Step 4           :       Get "main"
+# Step 5           :   Arduino main on USBx
+# Step 6 (Finish)  :      Send "done"             ----DONE---->           
+# Step 7           :                                                    Get "done"
+#
+
+
 # number of Arduino that connect to Raspberry Pi
 total_usb = 3
 
@@ -166,8 +182,17 @@ for x in range(total_usb):
             print ("USB{} berhasil dikenali".format(x))
 
             # send "end" message
-            detect_usb(x, selesai)
-            print ("Checking USB{} selesai".format(x))
+            with serial.Serial("/dev/ttyUSB{}".format(x), 9600, timeout=1) as detect_USB:
+                time.sleep(0.5)
+
+                if detect_USB.isOpen():                    
+                    check_port_cmd = selesai
+                    check_cmd = ("{}\n".format(check_port_cmd))
+                    time.sleep(5)
+                    detect_USB.flushInput()
+                    detect_USB.write(check_cmd.encode('utf-8'))
+                    print ("\n-----Checking USB{} selesai-----\n".format(x))
+                    time.sleep(0.5)
 
             code_usb = decode_usb
 
@@ -315,11 +340,10 @@ while(True):
     # mengambil frame
     frame = vs.read() #gambar asli
     
-    # resize for real frame (detection)
+    # resize the camera read to make processing faster
     frame = imutils.resize(frame, width=600)
     
-    # resize from real
-    # for camera_only (7000)
+    # resize processed frame into big scale
     camera_only_frame = imutils.resize(frame, width = width_camera_only)
 
 
