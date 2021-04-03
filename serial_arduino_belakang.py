@@ -2,10 +2,9 @@
 import time
 import serial
 
-default_num = 10000
+get_port = [4, 4, 4]
 
-#x_encoder = 0
-#enc_pos = 0
+default_num = 10000
 
 us_kiri_blk = default_num
 us_tengah_blk = default_num
@@ -37,9 +36,7 @@ with open("/home/pi/RoboCov19UNS/usb_port_config.txt", "r", encoding = "utf-8") 
     #   data[h+k] = default_num
 
     #print(data)
-    if n != 0:
-        arduino_belakang_port = get_port[2]
-
+    arduino_belakang_port = get_port[2]
 
 #---------------------------Operation Code---------------------------#
 # belakang
@@ -53,9 +50,15 @@ ser_belakang = serial.Serial(
     timeout=1
 )
 
-counter=0
+# Send "done" to Arduino start sending data
 
-while True:
+check_port_cmd = "done"
+check_cmd = ("{}\n".format(check_port_cmd))
+time.sleep(3)
+ser_belakang.flushInput()
+ser_belakang.write(check_cmd.encode('utf-8'))
+
+while 1:
     read_belakang = ser_belakang.readline()
     #print(read_belakang)
 
@@ -81,19 +84,31 @@ while True:
     #for h in range(j):
     #   data[h+k] = default_num
     
-    print(data)
+    #print(data)
 
     #save variable files (apabila data tidak kosong)--> dispaly
-    if j != 0:
+    if j == 0:
         f = open("data_serial_belakang.txt","w")
+
         #avoiding 0 value in ultrasonic sensor
         if(data[0] == 0) :
             data[0] = default_num
-        f.write("%d \r\n" %data[0]) #us_kiri_blk
         if(data[1] == 0) :
             data[1] = default_num
-        f.write("%d \r\n" %data[1]) #us_tengah_blk
         if(data[2] == 0) :
             data[2] = default_num
+        f.write("%d \r\n" %data[0]) #us_kiri_blk
+        f.write("%d \r\n" %data[1]) #us_tengah_blk
         f.write("%d \r\n" %data[2]) #us_kanan_blk
         f.close()
+
+    with open("/home/pi/RoboCov19UNS/stop_file.txt", "r", encoding = "utf-8") as h:
+        get_status = list(map(int, h.readlines()))
+        stop_status = get_status[0]
+        print(stop_status)
+        
+        if (stop_status == 0):
+            ser_belakang.close()
+            time.sleep(0.2)
+            print ("USB{} dinonaktifkan".format(arduino_belakang_port))
+            exit()
