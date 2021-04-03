@@ -4,8 +4,6 @@
    and send the data to raspi
 */
 
-#define LED 13
-
 
 String string_kode_enkripsi;
 
@@ -25,11 +23,8 @@ void loop() {
 
   if (string_kode_enkripsi == "check") {
     //Kirim balasan
-    Serial.println("depan");
+    Serial.println("belakang");
     Serial.flush();
-    digitalWrite(LED, HIGH);
-    delay(500);
-    digitalWrite(LED, LOW);
   }
 }
 
