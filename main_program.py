@@ -182,7 +182,7 @@ arduino_belakang_port = 4
 
 times_usb = 0
 # detect USBPort
-print("Cek kelengkapan perangkat...")
+print("\nCek kelengkapan perangkat...\n")
 for x in range(total_usb):
     detect_usb(x, cek)
 
@@ -405,12 +405,9 @@ while(True):
             #   data[h+k] = default_num
 
             #print(data)
-            if j != 0:
-                #x_enc = data_depan[0]
-                #enc_pos = data_depan[1]
-                us_kiri_dpn = data_depan[0]
-                us_tengah_dpn = data_depan[1]
-                us_kanan_dpn = data_depan[2]
+            us_kiri_dpn = data_depan[0]
+            us_tengah_dpn = data_depan[1]
+            us_kanan_dpn = data_depan[2]
                         
         with open("/home/pi/RoboCov19UNS/data_serial_belakang.txt", "r", encoding = "utf-8") as h:
             data_serial_belakang = list(map(int, h.readlines()))
@@ -434,10 +431,9 @@ while(True):
             #   data[h+k] = default_num
 
             #print(data)
-            if n != 0:
-                us_kiri_blk = data_belakang[0]
-                us_tengah_blk = data_belakang[1]
-                us_kanan_blk = data_belakang[2]
+            us_kiri_blk = data_belakang[0]
+            us_tengah_blk = data_belakang[1]
+            us_kanan_blk = data_belakang[2]
         
         # reset counter
         counter_serial = 0
@@ -555,7 +551,7 @@ while(True):
         # stop serial port
         set_usb("stop")
         ser_main.close()
-        print("\n -------------Serial port dinonaktifkan-------------")
+        print("\n -------Serial port dinonaktifkan-------")
         break
  
     else:
@@ -568,4 +564,3 @@ print("Menutup Aplikasi ...")
 cv2.destroyAllWindows()
 vs.stop()
 sys.exit()
-#subprocess.Popen(["pkill", "python3"], stdout=PIPE, stderr=PIPE)
