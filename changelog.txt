@@ -4,3 +4,8 @@ Change Log
     - Reverse kamera_kanan dengan kamera_kiri
     - Add "end message"
     - Add explanation of how USBx Detect works
+
+3 April 2021 :
+    - Edit arduino_depan and arduino_belakang to send serial to Raspberry Pi
+    - Add stop serial port
+    - Repair serial_arduino_depan and serial_arduino_belakang

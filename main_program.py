@@ -109,7 +109,7 @@ def detect_usb(port_number, pesan):
     global decode_usb
     
     with serial.Serial("/dev/ttyUSB{}".format(port_number), 9600, timeout=1) as detect_USB:
-        time.sleep(0.5) #wait serial to open
+        time.sleep(0.25) #wait serial to open
         print("Check USB{}".format(detect_USB.port))
 
         if detect_USB.isOpen():
@@ -117,7 +117,7 @@ def detect_usb(port_number, pesan):
             
             check_port_cmd = pesan
             check_cmd = ("{}\n".format(check_port_cmd))
-            time.sleep(5)
+            time.sleep(3)
             detect_USB.flushInput()
             detect_USB.write(check_cmd.encode('utf-8'))
         
@@ -128,7 +128,16 @@ def detect_usb(port_number, pesan):
                 detect_USB.flushInput()
         else:
             print("{} tidak terhubung!".format(detect_USB.port))
-
+            
+# send command to start or stop serial port
+def set_usb(stop_or_start):
+    if(stop_or_start == "stop"):
+        stat = 0
+    if(stop_or_start == "start"):
+        stat = 1
+    f_stop = open("stop_file.txt","w")
+    f_stop.write("{} ".format(stat)) 
+    f_stop.close()
 #-------------------------------------------End of Local Function-------------------------------------------#
 
 
@@ -183,16 +192,16 @@ for x in range(total_usb):
 
             # send "end" message
             with serial.Serial("/dev/ttyUSB{}".format(x), 9600, timeout=1) as detect_USB:
-                time.sleep(0.5)
+                time.sleep(0.25)
 
                 if detect_USB.isOpen():                    
-                    check_port_cmd = selesai
+                    check_port_cmd = "done"
                     check_cmd = ("{}\n".format(check_port_cmd))
-                    time.sleep(5)
+                    time.sleep(3)
                     detect_USB.flushInput()
                     detect_USB.write(check_cmd.encode('utf-8'))
-                    print ("\n-----Checking USB{} selesai-----\n".format(x))
-                    time.sleep(0.5)
+                    print ("\n-----Checking USB{} berhasil-----\n".format(x))
+                    time.sleep(0.25)
 
             code_usb = decode_usb
 
@@ -219,6 +228,7 @@ for x in range(total_usb):
             times_usb += 1
             if times_usb == 5:
                 times_usb = 0
+                print ("\n-----Checking USB{} gagal-----\n".format(x))
                 break
             
 # if there are two arduino detected
@@ -261,6 +271,9 @@ f.write("%d \r\n" %arduino_belakang_port) #port arduino_belakang
 f.close()
 
 print("Konfigurasi berhasil disimpan")
+
+# start serial port
+set_usb("start")
 
 #-----------------------------------------End Detect Arduino in USB-------------------------------------------#
 
@@ -401,11 +414,10 @@ while(True):
                         
         with open("/home/pi/RoboCov19UNS/data_serial_belakang.txt", "r", encoding = "utf-8") as h:
             data_serial_belakang = list(map(int, h.readlines()))
-        
             # pemisahan data:
             m = len(data_serial_belakang)
 
-            #detect and correction if data can't read
+            #detectq and correction if data can't read
             #read data depan = m
             #non-read data depan = n
             n = 3 - m
@@ -475,8 +487,6 @@ while(True):
             belakang_diam()
             status_robot = "diam"
 
-
-
     font = cv2.FONT_HERSHEY_SIMPLEX
 
     # info tab
@@ -491,6 +501,7 @@ while(True):
     cv2.putText(camera_only_frame,'M ~ Buka pintu',(width_camera_only-155, height_camera_only-30), font, 0.6,(255,255,255),1,cv2.LINE_AA)
     cv2.putText(camera_only_frame,'{}'.format(datetime.datetime.now()),(width_camera_only - 222, height_camera_only -10), font, 0.6,(255,255,255),1,cv2.LINE_AA)
 
+    cv2.putText(camera_only_frame,'{}'.format(string_kode),(width_camera_only-70, 30), font, 0.4,(255,255,255),1,cv2.LINE_AA)
 
     # show image
     # Frame asli
@@ -508,7 +519,6 @@ while(True):
     # key down = 65634 --> 'T' 84
     # key right = 65363 --> 'S' 83
     # key left = 65361 --> 'Q' 81
-
         
     if key == ord("w") or key == 65362 or key == 82:
         belakang_maju()
@@ -542,13 +552,16 @@ while(True):
     elif key == ord("m"): #buka pintu
         buka_pintu()
     elif key == ord("q"):
+        # stop serial port
+        set_usb("stop")
+        ser_main.close()
+        print("\n -------------Serial port dinonaktifkan-------------")
         break
  
     else:
         belakang_diam()
         depan_diam()
         kamera_diam()
-
 
 print("Menutup Aplikasi ...")
 
