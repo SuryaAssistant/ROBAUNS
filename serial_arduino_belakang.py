@@ -13,7 +13,7 @@ us_kanan_blk = default_num
 data = [us_kiri_blk, us_tengah_blk, us_kanan_blk]
 
 #---------------------------Read USBx Port---------------------------#
-with open("/home/pi/RoboCov19UNS/usb_port_config.txt", "r", encoding = "utf-8") as h:
+with open("/home/pi/RoboCov19UNS/save_cache/usb_port_config.txt", "r", encoding = "utf-8") as h:
     data_port = list(map(int, h.readlines()))
 
     # pemisahan data:
@@ -35,7 +35,6 @@ with open("/home/pi/RoboCov19UNS/usb_port_config.txt", "r", encoding = "utf-8") 
     #for h in range(j):
     #   data[h+k] = default_num
 
-    #print(data)
     arduino_belakang_port = get_port[2]
 
 #---------------------------Operation Code---------------------------#
@@ -83,26 +82,22 @@ while 1:
     #print non-read data with default_num
     #for h in range(j):
     #   data[h+k] = default_num
-    
-    #print(data)
 
     #save variable files (apabila data tidak kosong)--> dispaly
-    if j == 0:
-        f = open("data_serial_belakang.txt","w")
+    f = open("/home/pi/RoboCov19UNS/save_cache/data_serial_belakang.txt","w")
+    #avoiding 0 value in ultrasonic sensor
+    if(data[0] == 0) :
+        data[0] = default_num
+    if(data[1] == 0) :
+        data[1] = default_num
+    if(data[2] == 0) :
+        data[2] = default_num
+    f.write("{} \r\n" .format(data[0])) #us_kiri_blk
+    f.write("{} \r\n" .format(data[1])) #us_tengah_blk
+    f.write("{} " .format(data[2])) #us_kanan_blk
+    f.close()
 
-        #avoiding 0 value in ultrasonic sensor
-        if(data[0] == 0) :
-            data[0] = default_num
-        if(data[1] == 0) :
-            data[1] = default_num
-        if(data[2] == 0) :
-            data[2] = default_num
-        f.write("%d \r\n" %data[0]) #us_kiri_blk
-        f.write("%d \r\n" %data[1]) #us_tengah_blk
-        f.write("%d \r\n" %data[2]) #us_kanan_blk
-        f.close()
-
-    with open("/home/pi/RoboCov19UNS/stop_file.txt", "r", encoding = "utf-8") as h:
+    with open("/home/pi/RoboCov19UNS/save_cache/stop_file.txt", "r", encoding = "utf-8") as h:
         get_status = list(map(int, h.readlines()))
         stop_status = get_status[0]
         print(stop_status)
