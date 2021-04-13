@@ -9,3 +9,7 @@ Change Log
     - Edit arduino_depan and arduino_belakang to send serial to Raspberry Pi
     - Add stop serial port
     - Repair serial_arduino_depan and serial_arduino_belakang
+
+13 April 2021 :
+    - Edit save path file pembacaan sensor
+    - Pindah semua file cache ke folder save_chace
