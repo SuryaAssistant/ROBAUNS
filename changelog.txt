@@ -13,3 +13,4 @@ Change Log
 13 April 2021 :
     - Edit save path file pembacaan sensor
     - Pindah semua file cache ke folder save_chace
+    - Edit pin Ardoor.json

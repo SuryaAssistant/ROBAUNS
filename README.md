@@ -93,3 +93,14 @@ git clone https://github.com/robotcovid19uns/RoboCov19UNS
 ```
 
 Masuk ke dalam folder `RoboCov19UNS` dan kemudian jalankan `main_program.py`
+
+### Testing
+Apabila Anda ingin mencoba main_program.py, maka setidaknya Ada memerlukan empat buah Arduino (clone version - CH340G) yang terhubung dengan port serial Raspberry Pi.
+
+Langkah - langkah :
+1. Install dependency(s) yang diperlukan.
+2. Clone repository ini di folder `/home/pi/`.
+3. Upload program Arduino di folder `arduino_files` ke masing-masing Arduino.
+4. Hubungkan tiga buah Arduino dengan port USB di Raspberry Pi.
+5. Hubungkan sebuah kamera USB ke salah satu port USB Raspberry Pi.
+6. Jalankan `main_program.py`

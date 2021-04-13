@@ -97,12 +97,12 @@ while 1:
     f.write("{}" .format(data[2])) #us_kanan_dpn
     f.close()
     
-    print(data)
+    #print(data)
 
     with open("/home/pi/RoboCov19UNS/save_cache/stop_file.txt", "r", encoding = "utf-8") as h:
         get_status = list(map(int, h.readlines()))
         stop_status = get_status[0]
-        print(stop_status)
+        #print(stop_status)
         
         if (stop_status == 0):
             ser_depan.close()
