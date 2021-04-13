@@ -145,7 +145,7 @@ def set_usb(stop_or_start):
         stat = 0
     if(stop_or_start == "start"):
         stat = 1
-    f_stop = open("stop_file.txt","w")
+    f_stop = open("/home/pi/RoboCov19UNS/save_cache/stop_file.txt","w")
     f_stop.write("{} ".format(stat)) 
     f_stop.close()
 #-------------------------------------------End of Local Function-------------------------------------------#
@@ -274,10 +274,10 @@ print("arduino sensor belakang port USB{}".format(arduino_belakang_port))
 # save usb port to usb_port_config.txt
 print("Menyimpan konfigurasi")
 
-f = open("usb_port_config.txt","w")
-f.write("%d \r\n" %arduino_main_port) #port_arduino_main
-f.write("%d \r\n" %arduino_depan_port) #port_arduino_depan
-f.write("%d \r\n" %arduino_belakang_port) #port arduino_belakang
+f = open("/home/pi/RoboCov19UNS/save_cache/usb_port_config.txt","w")
+f.write("{} \r\n" .format(arduino_main_port)) #port_arduino_main
+f.write("{} \r\n" .format(arduino_depan_port)) #port_arduino_depan
+f.write("{} " .format(arduino_belakang_port)) #port arduino_belakang
 f.close()
 
 print("Konfigurasi berhasil disimpan")
@@ -394,7 +394,7 @@ try:
         # panggil serial setiap counter = 5
         if counter_serial == 5:            
             # read stored variable value in data_serial_depan.txt
-            with open("/home/pi/RoboCov19UNS/data_serial_depan.txt", "r",encoding="utf-8") as g:
+            with open("/home/pi/RoboCov19UNS/save_cache/data_serial_depan.txt", "r",encoding="utf-8") as g:
                 data_serial_depan = list(map(int, g.readlines()))
                 # pemisahan data:
                 k = len(data_serial_depan)
@@ -420,7 +420,7 @@ try:
                 us_tengah_dpn = data_depan[1]
                 us_kanan_dpn = data_depan[2]
                             
-            with open("/home/pi/RoboCov19UNS/data_serial_belakang.txt", "r", encoding = "utf-8") as h:
+            with open("/home/pi/RoboCov19UNS/save_cache/data_serial_belakang.txt", "r", encoding = "utf-8") as h:
                 data_serial_belakang = list(map(int, h.readlines()))
                 # pemisahan data:
                 m = len(data_serial_belakang)
