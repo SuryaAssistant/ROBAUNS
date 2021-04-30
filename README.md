@@ -14,16 +14,7 @@ Merupakan robot pembantu perawat untuk mengantarkan barang dan memonitoring pasi
 Robot menggunakan Raspberry Pi 3B+ sebagai komputer pengontrol robot serta menggunakan Arduino untuk mengontrol motor, servo, dan membaca sensor.
 
 - Release algoritma yang digunakan
-  > https://github.com/robotcovid19uns/RoboCov19UNS/tree/main
-
-- Release algoritma baru 
-  > https://github.com/robotcovid19uns/RoboCov19UNS/tree/only_serial
-
-- Upload update algoritma lama
-  > https://github.com/robotcovid19uns/RoboCov19UNS/tree/pengembangan
-
-- Upload update algoritma baru (edit_serial)
-  > https://github.com/robotcovid19uns/RoboCov19UNS/tree/edit_serial
+  > https://github.com/Robot-Asisten-ROBA-UNS/ROBAUNS
 
 <br>
 
@@ -40,7 +31,7 @@ sudo apt-get update
 sudo apt-get upgrade
 ```
 
-### Instal _Dependency(s)_
+### Instal Dependency
 ```
 sudo apt-get install build-essential cmake pkg-config
 ```
@@ -89,10 +80,10 @@ pip install imutils
 ### Clone Github Repository
 Buka terminal dan ketik
 ```
-git clone https://github.com/robotcovid19uns/RoboCov19UNS
+git clone https://github.com/Robot-Asisten-ROBA-UNS/ROBAUNS
 ```
 
-Masuk ke dalam folder `RoboCov19UNS` dan kemudian jalankan `main_program.py`
+Masuk ke dalam folder `ROBAUNS` dan kemudian jalankan `main_program.py`
 
 ### Testing
 Apabila Anda ingin mencoba main_program.py, maka setidaknya Ada memerlukan empat buah Arduino (clone version - CH340G) yang terhubung dengan port serial Raspberry Pi.
