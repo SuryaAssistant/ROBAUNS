@@ -119,7 +119,7 @@ def force_stop():
     stop_string = ("{}\n".format(string_kode))
 
 def buka_pintu():
-    subprocess.Popen(["python3", "./IR_Transmit.py"], stdout=PIPE, stderr=PIPE)
+    subprocess.Popen(["python3", "./door/IR_Transmit.py"], stdout=PIPE, stderr=PIPE)
 
 # detect arduino port posistion in raspberry pi
 def detect_usb(port_number, pesan):
