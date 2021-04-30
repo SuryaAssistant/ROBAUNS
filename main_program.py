@@ -25,8 +25,7 @@ import subprocess
 from subprocess import Popen, PIPE
 #get time
 import datetime
-
-import serial
+import os
 
 #------------------------------------------End of Import  Library(s)------------------------------------------#
 GPIO.setmode(GPIO.BCM)
@@ -36,6 +35,12 @@ print("Sedang Memuat...")
 sleep(1.00)
 
 print("Mulai")
+
+# Create chace folder
+# to save configuration and sensor data
+cache_folder = "./cache"
+if os.path.exists(cache_folder == False):
+    os. makedirs(cache_folder)
 
 #-----------------------------------------------Serial Protocol-----------------------------------------------#
 # kode status perintah raspi
@@ -107,12 +112,14 @@ def force_stop():
     depan_diam()
     kamera_diam()
 
-    kode_enkripsi = 10000+(kode_motor_belakang*1000)+(kode_motor_depan*100)+(kode_kamera)
-    string_kode = str(kode_enkripsi)
+    #kode_enkripsi = 10000+(kode_motor_belakang*1000)+(kode_motor_depan*100)+(kode_kamera)
+    kode_enkripsi = "1" + str(kode_motor_belakang) + str(kode_motor_depan) + str(kode_kamera)
+    #string_kode = str(kode_enkripsi)
+    string_kode = kode_enkripsi
     stop_string = ("{}\n".format(string_kode))
 
 def buka_pintu():
-    subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/IR_Transmit.py"], stdout=PIPE, stderr=PIPE)
+    subprocess.Popen(["python3", "./IR_Transmit.py"], stdout=PIPE, stderr=PIPE)
 
 # detect arduino port posistion in raspberry pi
 def detect_usb(port_number, pesan):
@@ -145,7 +152,7 @@ def set_usb(stop_or_start):
         stat = 0
     if(stop_or_start == "start"):
         stat = 1
-    f_stop = open("/home/pi/RoboCov19UNS/save_cache/stop_file.txt","w")
+    f_stop = open("./cache/stop_file.txt","w")
     f_stop.write("{} ".format(stat)) 
     f_stop.close()
 #-------------------------------------------End of Local Function-------------------------------------------#
@@ -274,7 +281,7 @@ print("arduino sensor belakang port USB{}".format(arduino_belakang_port))
 # save usb port to usb_port_config.txt
 print("Menyimpan konfigurasi")
 
-f = open("/home/pi/RoboCov19UNS/save_cache/usb_port_config.txt","w")
+f = open("./cache/usb_port_config.txt","w")
 f.write("{} \r\n" .format(arduino_main_port)) #port_arduino_main
 f.write("{} \r\n" .format(arduino_depan_port)) #port_arduino_depan
 f.write("{} " .format(arduino_belakang_port)) #port arduino_belakang
@@ -341,8 +348,8 @@ data_belakang = [default_num, default_num, default_num]
 counter_serial = 0
 
 # pemanggilan serial
-subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/serial_arduino_depan.py"], stdout=PIPE, stderr=PIPE)
-subprocess.Popen(["python3", "/home/pi/RoboCov19UNS/serial_arduino_belakang.py"], stdout=PIPE, stderr=PIPE)
+subprocess.Popen(["python3", "./serial_arduino_depan.py"], stdout=PIPE, stderr=PIPE)
+subprocess.Popen(["python3", "./serial_arduino_belakang.py"], stdout=PIPE, stderr=PIPE)
 
 try:
     ap = argparse.ArgumentParser()
@@ -379,22 +386,23 @@ try:
         # if active_status == 1, Arduino execute command code
         # if active_status == 0, Arduino ignore the other command. It used when the robot accidently disconnected
         #  
-        kode_enkripsi = 10000+(kode_motor_belakang*1000)+(kode_motor_depan*100)+(kode_kamera)
-        string_kode = str(kode_enkripsi)
+        
+        #kode_enkripsi = 10000+(kode_motor_belakang*1000)+(kode_motor_depan*100)+(kode_kamera)
+        kode_enkripsi = "1" + str(kode_motor_belakang) + str(kode_motor_depan) + str(kode_kamera)
+        #string_kode = str(kode_enkripsi)
+        string_kode = kode_enkripsi
         send_string = ("{}\n".format(string_kode))
+    
         ser_main.write(send_string.encode('utf-8'))
         
         #set to default
         kode_motor_depan = 6
         kode_kamera = 13
-        
-        #print(send_string.encode('utf-8'))
-
 
         # panggil serial setiap counter = 5
         if counter_serial == 5:            
             # read stored variable value in data_serial_depan.txt
-            with open("/home/pi/RoboCov19UNS/save_cache/data_serial_depan.txt", "r",encoding="utf-8") as g:
+            with open("./cache/data_serial_depan.txt", "r",encoding="utf-8") as g:
                 data_serial_depan = list(map(int, g.readlines()))
                 # pemisahan data:
                 k = len(data_serial_depan)
@@ -420,7 +428,7 @@ try:
                 us_tengah_dpn = data_depan[1]
                 us_kanan_dpn = data_depan[2]
                             
-            with open("/home/pi/RoboCov19UNS/save_cache/data_serial_belakang.txt", "r", encoding = "utf-8") as h:
+            with open("./cache/data_serial_belakang.txt", "r", encoding = "utf-8") as h:
                 data_serial_belakang = list(map(int, h.readlines()))
                 # pemisahan data:
                 m = len(data_serial_belakang)

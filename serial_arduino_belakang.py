@@ -13,7 +13,7 @@ us_kanan_blk = default_num
 data = [us_kiri_blk, us_tengah_blk, us_kanan_blk]
 
 #---------------------------Read USBx Port---------------------------#
-with open("/home/pi/RoboCov19UNS/save_cache/usb_port_config.txt", "r", encoding = "utf-8") as h:
+with open("./cache/usb_port_config.txt", "r", encoding = "utf-8") as h:
     data_port = list(map(int, h.readlines()))
 
     # pemisahan data:
@@ -84,7 +84,7 @@ while 1:
     #   data[h+k] = default_num
 
     #save variable files (apabila data tidak kosong)--> dispaly
-    f = open("/home/pi/RoboCov19UNS/save_cache/data_serial_belakang.txt","w")
+    f = open("./cache/data_serial_belakang.txt","w")
     #avoiding 0 value in ultrasonic sensor
     if(data[0] == 0) :
         data[0] = default_num
@@ -99,7 +99,7 @@ while 1:
 
     #print(data)
 
-    with open("/home/pi/RoboCov19UNS/save_cache/stop_file.txt", "r", encoding = "utf-8") as h:
+    with open("./cache/stop_file.txt", "r", encoding = "utf-8") as h:
         get_status = list(map(int, h.readlines()))
         stop_status = get_status[0]
         #print(stop_status)
