@@ -14,3 +14,10 @@ Change Log
     - Edit save path file pembacaan sensor
     - Pindah semua file cache ke folder save_chace
     - Edit pin Ardoor.json
+
+22 April 2021 :
+    - Change "/home/pi/RoboCov19UNS" into "./"
+    - Move chace file into "./cache/"
+
+30 April 2021 :
+    - Import into ROBAUNS
