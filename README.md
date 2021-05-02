@@ -1,6 +1,6 @@
 <span align = "center">
   
-# RoboCov19UNS
+# ROBA UNS
 
 ### Sedang dalam pengembangan
   
@@ -9,18 +9,16 @@
 <br>
 
 ## Pendahuluan
-Merupakan robot pembantu perawat untuk mengantarkan barang dan memonitoring pasien Covid 19 secara remote
+Merupakan robot pembantu perawat untuk mengantarkan barang dan memonitoring pasien secara remote.
 
-Robot menggunakan Raspberry Pi 3B+ sebagai komputer pengontrol robot serta menggunakan Arduino untuk mengontrol motor, servo, dan membaca sensor.
-
-- Release algoritma yang digunakan
+- Release
   > https://github.com/Robot-Asisten-ROBA-UNS/ROBAUNS
 
 <br>
 
 ## Cara Install
 
-Salin _command_ di bawah dan tempel di terminal Raspberry Pi
+Salin command di bawah dan tempel di terminal Raspberry Pi
 
 ### Update
 
@@ -86,10 +84,13 @@ git clone https://github.com/Robot-Asisten-ROBA-UNS/ROBAUNS
 Masuk ke dalam folder `ROBAUNS` dan kemudian jalankan `main_program.py`
 
 ### Testing
-Apabila Anda ingin mencoba main_program.py, maka setidaknya Ada memerlukan empat buah Arduino (clone version - CH340G) yang terhubung dengan port serial Raspberry Pi.
+Apabila Anda ingin mencoba `main_program.py`, maka setidaknya memerlukan :
+1. 1 buah Raspberry Pi (minimal 3B)
+2. 3 buah Arduino dengan CH340G atau yang terbaca sebagai `tty/dev/USBx`
+2. 1 buah kamera USB
 
 Langkah - langkah :
-1. Install dependency(s) yang diperlukan.
+1. Install dependency(s) yang diperlukan di terminal.
 2. Clone repository ini di folder `/home/pi/`.
 3. Upload program Arduino di folder `arduino_files` ke masing-masing Arduino.
 4. Hubungkan tiga buah Arduino dengan port USB di Raspberry Pi.
