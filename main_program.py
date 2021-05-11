@@ -4,28 +4,25 @@
 
 from __future__ import print_function
 import sys
-#for Videostream
+import os
+
 import imutils
 from imutils.video import VideoStream
 from imutils.video import WebcamVideoStream
-#for timing and delay
+
 from time import sleep
 import time
-#for I/O pins
+import datetime
+
 import RPi.GPIO as GPIO
-#for numerical and other calculation
-import numpy as np
-import argparse
-#for OpenCV
-import cv2
-#for serial communication Arduino-Raspberry Pi
 import serial
-#for call other script in 'background'
+
+import numpy as np
+import cv2
+
 import subprocess
 from subprocess import Popen, PIPE
-#get time
-import datetime
-import os
+from protocol import *
 
 #------------------------------------------End of Import  Library(s)------------------------------------------#
 GPIO.setmode(GPIO.BCM)
@@ -44,79 +41,14 @@ if os.path.exists(cache_folder == False):
 
 #-----------------------------------------------Serial Protocol-----------------------------------------------#
 # kode status perintah raspi
-
-# 1 = motor belakang maju
-# 2 = motor belakang mundur
-# 3 = motor belakang diam
-
-# 4 = motor depan kanan
-# 5 = motor depan kiri
-# 6 = motor depan diam
-
-# 11 = kamera ke kanan x derajat
-# 10 = kamera ke kiri x derajat
-# 12 = kamera ke tengah
-# 13 = kamera diam
+    # open protocol.py
 
 # default code
-kode_motor_belakang = 3
-kode_motor_depan = 6
-kode_kamera = 13
+kode_motor_belakang = belakang_diam()
+kode_motor_depan = depan_diam()
+kode_kamera = kamera_diam()
 #-------------------------------------------End of Serial Protocol-------------------------------------------#
 
-
-#-----------------------------------------------Local Function-----------------------------------------------#
-def belakang_maju():
-    global kode_motor_belakang
-    kode_motor_belakang = 1
-
-def belakang_mundur():
-    global kode_motor_belakang
-    kode_motor_belakang = 2
-
-def belakang_diam():
-    global kode_motor_belakang
-    kode_motor_belakang = 3
-
-def depan_kanan():
-    global kode_motor_depan
-    kode_motor_depan = 4
-
-def depan_kiri():
-    global kode_motor_depan
-    kode_motor_depan = 5
-
-def depan_diam():
-    global kode_motor_depan
-    kode_motor_depan = 6
-
-def kamera_kanan():
-    global kode_kamera
-    kode_kamera = 11
-
-def kamera_kiri():
-    global kode_kamera
-    kode_kamera = 10
-
-def kamera_tengah():
-    global kode_kamera
-    kode_kamera = 12
-
-def kamera_diam():
-    global kode_kamera
-    kode_kamera = 13
-
-def force_stop():
-    global stop_string
-    belakang_diam()
-    depan_diam()
-    kamera_diam()
-
-    #kode_enkripsi = 10000+(kode_motor_belakang*1000)+(kode_motor_depan*100)+(kode_kamera)
-    kode_enkripsi = "1" + str(kode_motor_belakang) + str(kode_motor_depan) + str(kode_kamera)
-    #string_kode = str(kode_enkripsi)
-    string_kode = kode_enkripsi
-    stop_string = ("{}\n".format(string_kode))
 
 def buka_pintu():
     subprocess.Popen(["python3", "./door/IR_Transmit.py"], stdout=PIPE, stderr=PIPE)
@@ -352,11 +284,6 @@ subprocess.Popen(["python3", "./serial_arduino_depan.py"], stdout=PIPE, stderr=P
 subprocess.Popen(["python3", "./serial_arduino_belakang.py"], stdout=PIPE, stderr=PIPE)
 
 try:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("-o", "--output", type=str, default="barcodes.csv",
-        help="path to output CSV file containing barcodes")
-    args = vars(ap.parse_args())
-
     # start video stream
     vs = WebcamVideoStream(src=0).start()
     #vs = cv2.VideoCapture(1)
@@ -387,17 +314,15 @@ try:
         # if active_status == 0, Arduino ignore the other command. It used when the robot accidently disconnected
         #  
         
-        #kode_enkripsi = 10000+(kode_motor_belakang*1000)+(kode_motor_depan*100)+(kode_kamera)
         kode_enkripsi = "1" + str(kode_motor_belakang) + str(kode_motor_depan) + str(kode_kamera)
-        #string_kode = str(kode_enkripsi)
         string_kode = kode_enkripsi
         send_string = ("{}\n".format(string_kode))
     
         ser_main.write(send_string.encode('utf-8'))
         
         #set to default
-        kode_motor_depan = 6
-        kode_kamera = 13
+        kode_motor_depan = depan_diam()
+        kode_kamera = kamera_diam()
 
         # panggil serial setiap counter = 5
         if counter_serial == 5:            
@@ -494,12 +419,12 @@ try:
         # jika  robot mendeteksi benda
         if status_robot == "maju":
             if us_tengah_dpn <= 50 :
-                belakang_diam()
+                kode_motor_belakang = belakang_diam()
                 status_robot = "diam"
             
         if status_robot == "mundur":
             if us_tengah_blk <= 50 :
-                belakang_diam()
+                kode_motor_belakang = belakang_diam()
                 status_robot = "diam"
 
         font = cv2.FONT_HERSHEY_SIMPLEX
@@ -536,39 +461,39 @@ try:
         # key left = 65361 --> 'Q' 81
             
         if key == ord("w") or key == 65362 or key == 82:
-            belakang_maju()
+            kode_motor_belakang = belakang_maju()
             status_robot = "maju"
             #print("UP")
         elif key == ord("s") or key == 65634 or key == 84:
-            belakang_mundur()
+            kode_motor_belakang = belakang_mundur()
             status_robot = "mundur"
             #print("DOWN")
         elif key == ord("d") or key == 65363 or key == 83:
-            depan_kanan()
+            kode_motor_depan = depan_kanan()
             #print("RIGHT")
         elif key == ord("a") or key == 65361 or key == 81:
-            depan_kiri()
+            kode_motor_depan = depan_kiri()
             #print("LEFT")        
         elif key == ord("x") or key == ord(" "):
-            belakang_diam()
+            kode_motor_belakang = belakang_diam()
             status_robot = "diam"
             
         #-----------kamera--------------------
         elif key == ord("o"):
-            kamera_kiri()  
+            kode_kamera = kamera_kiri()  
         elif key == ord("p"):
-            kamera_kanan()
+            kode_kamera = kamera_kanan()
         elif key == ord("1"):
-            kamera_tengah()
+            kode_kamera = kamera_tengah()
         elif key == ord("0"):
-            kamera_diam()
+            kode_kamera = kamera_diam()
         #-----------end of kamera---------------
             
         elif key == ord("m"): #buka pintu
             buka_pintu()
 
         elif key == ord("q"):
-            force_stop()
+            stop_string = force_stop()
             ser_main.write(stop_string.encode('utf-8'))
             # stop serial port
             set_usb("stop")
@@ -576,16 +501,16 @@ try:
             break
     
         else:
-            belakang_diam()
-            depan_diam()
-            kamera_diam()
+            kode_motor_belakang = belakang_diam()
+            kode_motor_depan = depan_diam()
+            kode_kamera = kamera_diam()
 
     cv2.destroyAllWindows()
     vs.stop()
     sys.exit()
 
 except:
-    force_stop()
+    stop_string = force_stop()
     ser_main.write(stop_string.encode('utf-8'))
 
     # stop serial port
