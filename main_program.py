@@ -40,9 +40,6 @@ if os.path.exists(cache_folder == False):
     os. makedirs(cache_folder)
 
 #-----------------------------------------------Serial Protocol-----------------------------------------------#
-# kode status perintah raspi
-    # open protocol.py
-
 # default code
 kode_motor_belakang = belakang_diam()
 kode_motor_depan = depan_diam()
@@ -314,8 +311,7 @@ try:
         # if active_status == 0, Arduino ignore the other command. It used when the robot accidently disconnected
         #  
         
-        kode_enkripsi = "1" + str(kode_motor_belakang) + str(kode_motor_depan) + str(kode_kamera)
-        string_kode = kode_enkripsi
+        string_kode = command(kode_motor_belakang, kode_motor_depan, kode_kamera)
         send_string = ("{}\n".format(string_kode))
     
         ser_main.write(send_string.encode('utf-8'))
