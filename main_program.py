@@ -22,7 +22,10 @@ import cv2
 
 import subprocess
 from subprocess import Popen, PIPE
+
+# Local libraries
 from protocol import *
+from detectusb import *
 
 #------------------------------------------End of Import  Library(s)------------------------------------------#
 GPIO.setmode(GPIO.BCM)
@@ -49,31 +52,6 @@ kode_kamera = kamera_diam()
 
 def buka_pintu():
     subprocess.Popen(["python3", "./door/IR_Transmit.py"], stdout=PIPE, stderr=PIPE)
-
-# detect arduino port posistion in raspberry pi
-def detect_usb(port_number, pesan):
-    global decode_usb
-    
-    with serial.Serial("/dev/ttyUSB{}".format(port_number), 9600, timeout=1) as detect_USB:
-        time.sleep(0.25) #wait serial to open
-        print("Check USB{}".format(detect_USB.port))
-
-        if detect_USB.isOpen():
-            print("{} terkoneksi!".format(detect_USB.port))
-            
-            check_port_cmd = pesan
-            check_cmd = ("{}\n".format(check_port_cmd))
-            time.sleep(3)
-            detect_USB.flushInput()
-            detect_USB.write(check_cmd.encode('utf-8'))
-        
-            while detect_USB.inWaiting()==0: pass
-            if detect_USB.inWaiting():
-                answer=detect_USB.readline()
-                decode_usb = answer.decode('utf-8').rstrip()
-                detect_USB.flushInput()
-        else:
-            print("{} tidak terhubung!".format(detect_USB.port))
             
 # send command to start or stop serial port
 def set_usb(stop_or_start):
@@ -129,11 +107,12 @@ arduino_belakang_port = 4
 times_usb = 0
 # detect USBPort
 print("\nCek kelengkapan perangkat...\n")
+
 for x in range(total_usb):
-    detect_usb(x, cek)
+    usb_name = usb_detect(x, cek)
 
     while True:
-        if str(decode_usb) == "main" or str(decode_usb) == "depan" or str(decode_usb) == "belakang":
+        if str(usb_name) == "main" or str(usb_name) == "depan" or str(usb_name) == "belakang":
             print ("USB{} berhasil dikenali".format(x))
 
             # send "end" message
@@ -149,58 +128,23 @@ for x in range(total_usb):
                     print ("\n-----Checking USB{} berhasil-----\n".format(x))
                     time.sleep(0.25)
 
-            code_usb = decode_usb
-
             # determine usb port
-            if code_usb == "main" :
+            if usb_name == "main" :
                 arduino_main_port = x
-            if code_usb == "depan" :
+            if usb_name == "depan" :
                 arduino_depan_port = x
-            if code_usb =="belakang" :
+            if usb_name =="belakang" :
                 arduino_belakang_port = x
-                
-            # set port status
-            if x == 0:
-                port_0 = 1
-            if x == 1:
-                port_1 = 1
-            if x == 2:
-                port_2 = 1
-                
+            
             break
 
         else:
-            detect_usb(x, cek)
+            usb_detect(x, cek)
             times_usb += 1
-            if times_usb == 5:
+            if times_usb == 10:
                 times_usb = 0
                 print ("\n-----Checking USB{} gagal-----\n".format(x))
                 break
-            
-# if there are two arduino detected
-if arduino_main_port == 4:
-    if port_0 == 1 and port_1 == 1:
-        arduino_main_port = 2
-    elif port_0 == 1 and port_2 == 1:
-        arduino_main_port = 1
-    elif port_1 == 1 and port_2 == 1:
-        arduino_main_port = 0
-        
-if arduino_depan_port == 4:
-    if port_0 == 1 and port_1 == 1:
-        arduino_depan_port = 2
-    elif port_0 == 1 and port_2 == 1:
-        arduino_depan_port = 1
-    elif port_1 == 1 and port_2 == 1:
-        arduino_depan_port = 0
-    
-if arduino_belakang_port == 4:
-    if port_0 == 1 and port_1 == 1:
-        arduino_belakang_port = 2
-    elif port_0 == 1 and port_2 == 1:
-        arduino_belakang_port = 1
-    elif port_1 == 1 and port_2 == 1:
-        arduino_belakang_port = 0
 
 # print the result
 print("\narduino main port USB{}".format(arduino_main_port))
@@ -243,14 +187,6 @@ aman = (0, 255, 0)
 bahaya = (0, 0, 255)
 peringatan = (0, 255, 255)
 
-us_d_tengah = aman
-us_d_kanan = aman
-us_d_kiri = aman
-
-us_b_tengah = aman
-us_b_kanan = aman
-us_b_kiri = aman
-
 default_num = 10000
 
 us_kiri_dpn = default_num
@@ -292,7 +228,6 @@ try:
     while(True):
 
         # Membaca kamera
-        # mengambil frame
         frame = vs.read() #gambar asli
         
         # resize the camera read to make processing faster
@@ -380,36 +315,6 @@ try:
             
         # menambah counter
         counter_serial += 1
-
-        # Kondisi di layar
-        # us_depan
-        if us_tengah_dpn <= 50:
-            us_d_tengah = bahaya
-        if us_tengah_dpn > 50:
-            us_d_tengah = aman
-        if us_kanan_dpn <= 30:
-            us_d_kanan = bahaya
-        if us_kanan_dpn > 30:
-            us_d_kanan = aman
-        if us_kiri_dpn <=30:
-            us_d_kiri = bahaya
-        if us_kiri_dpn > 30:
-            us_d_kiri = aman
-
-        # us_belakang
-        if us_tengah_blk <= 50:
-            us_b_tengah = bahaya
-        if us_tengah_blk > 50:
-            us_b_tengah = aman
-        if us_kanan_blk <= 30:
-            us_b_kanan = bahaya
-        if us_kanan_blk > 30:
-            us_b_kanan = aman
-        if us_kiri_blk <=30:
-            us_b_kiri = bahaya
-        if us_kiri_blk > 30:
-            us_b_kiri = aman
-        
 
         # fungsi autostop
         # jika  robot mendeteksi benda
