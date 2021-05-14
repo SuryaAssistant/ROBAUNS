@@ -48,3 +48,4 @@ def force_stop():
     stop_command = ("{}\n".format(stop_kode))
 
     return stop_command
+    
