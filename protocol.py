@@ -31,13 +31,20 @@ def kamera_tengah():
 def kamera_diam():
     return 13
 
+# Unique function
+# create command string
+def command(belakang, depan, kamera):
+    kode_enkripsi = "1" + str(belakang) + str(depan) + str(kamera)
+    command_string = ("{}\n".format(kode_enkripsi))
+    return command_string
+
+# force stop command
 def force_stop():
-    belakang_diam()
-    depan_diam()
-    kamera_diam()
+    belakang = belakang_diam()
+    depan = depan_diam()
+    kamera = kamera_diam()
 
-    kode_enkripsi = "1" + str(kode_motor_belakang) + str(kode_motor_depan) + str(kode_kamera)
-    string_kode = kode_enkripsi
-    stop_string = ("{}\n".format(string_kode))
+    stop_kode = command(belakang, depan, kamera)
+    stop_command = ("{}\n".format(stop_kode))
 
-    return stop_string
+    return stop_command
