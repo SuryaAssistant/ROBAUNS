@@ -48,4 +48,6 @@ def force_stop():
     stop_command = ("{}\n".format(stop_kode))
 
     return stop_command
-    
+
+if __name__ == "__main__":
+    pass
