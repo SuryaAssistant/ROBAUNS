@@ -24,3 +24,11 @@ Change Log
 
 7 Mei 2021 :
     - Create protocol.py
+
+14 Mei 2021 : 
+    - Create command function in protocol.py
+    - Move detect_usb into library
+
+15 Mei 2021 :
+    - Create color package
+    - Simplify the main program code
