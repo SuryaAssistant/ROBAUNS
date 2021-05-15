@@ -5,34 +5,28 @@
 from __future__ import print_function
 import sys
 import os
-
+import subprocess
+import time
+import datetime
+import RPi.GPIO as GPIO
+import serial
+import numpy as np
+import cv2
 import imutils
+
 from imutils.video import VideoStream
 from imutils.video import WebcamVideoStream
 
-from time import sleep
-import time
-import datetime
-
-import RPi.GPIO as GPIO
-import serial
-
-import numpy as np
-import cv2
-
-import subprocess
-from subprocess import Popen, PIPE
-
-# Local libraries
 from protocol import *
 from detectusb import *
+from color import *
 
 #------------------------------------------End of Import  Library(s)------------------------------------------#
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 
 print("Sedang Memuat...")
-sleep(1.00)
+time.sleep(1.00)
 
 print("Mulai")
 
@@ -51,7 +45,7 @@ kode_kamera = kamera_diam()
 
 
 def buka_pintu():
-    subprocess.Popen(["python3", "./door/IR_Transmit.py"], stdout=PIPE, stderr=PIPE)
+    subprocess.Popen(["python3", "./door/IR_Transmit.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             
 # send command to start or stop serial port
 def set_usb(stop_or_start):
@@ -85,66 +79,74 @@ def set_usb(stop_or_start):
 
 # number of Arduino that connect to Raspberry Pi
 total_usb = 3
+detected_usb = 0
+max_port = 10
 
 # message comand
 cek = "check"
 selesai = "done"
 
-port_0 = 0
-port_1 = 0
-port_2 = 0
-
-# default reply from Arduino
-code_usb= ["default","default","default"]
-
 # set port number to prevent "unread USBx"
-# if port number == USB4, this mean raspi can't recognize
+# if port number == USB99, this mean raspi can't recognize
 # the arduino
-arduino_main_port = 4
-arduino_depan_port = 4
-arduino_belakang_port = 4
+arduino_main_port = 99
+arduino_depan_port = 99
+arduino_belakang_port = 99
 
 times_usb = 0
-# detect USBPort
+
+# Start to detect USBPort
 print("\nCek kelengkapan perangkat...\n")
 
-for x in range(total_usb):
+for x in range(max_port):
     usb_name = usb_detect(x, cek)
 
     while True:
-        if str(usb_name) == "main" or str(usb_name) == "depan" or str(usb_name) == "belakang":
-            print ("USB{} berhasil dikenali".format(x))
 
-            # send "end" message
-            with serial.Serial("/dev/ttyUSB{}".format(x), 9600, timeout=1) as detect_USB:
-                time.sleep(0.25)
+        if detected_usb < total_usb:
 
-                if detect_USB.isOpen():                    
-                    check_port_cmd = "done"
-                    check_cmd = ("{}\n".format(check_port_cmd))
-                    time.sleep(3)
-                    detect_USB.flushInput()
-                    detect_USB.write(check_cmd.encode('utf-8'))
-                    print ("\n-----Checking USB{} berhasil-----\n".format(x))
+            if str(usb_name) == "main" or str(usb_name) == "depan" or str(usb_name) == "belakang":
+                print ("USB{} berhasil dikenali".format(x))
+
+                # send "end" message
+                with serial.Serial("/dev/ttyUSB{}".format(x), 9600, timeout=1) as detect_USB:
                     time.sleep(0.25)
 
-            # determine usb port
-            if usb_name == "main" :
-                arduino_main_port = x
-            if usb_name == "depan" :
-                arduino_depan_port = x
-            if usb_name =="belakang" :
-                arduino_belakang_port = x
-            
-            break
+                    if detect_USB.isOpen():                    
+                        end_cmd = ("{}\n".format(selesai))
+                        time.sleep(3)
+                        detect_USB.flushInput()
+                        detect_USB.write(end_cmd.encode('utf-8'))
+                        print ("\n-----Checking USB{} berhasil-----\n".format(x))
+                        time.sleep(0.25)
 
-        else:
-            usb_detect(x, cek)
-            times_usb += 1
-            if times_usb == 10:
-                times_usb = 0
-                print ("\n-----Checking USB{} gagal-----\n".format(x))
+                # determine usb port
+                if usb_name == "main" :
+                    arduino_main_port = x
+                if usb_name == "depan" :
+                    arduino_depan_port = x
+                if usb_name =="belakang" :
+                    arduino_belakang_port = x
+                
+                detected_usb += 1
+
                 break
+
+            else:
+                if times_usb >= 10:
+                    times_usb = 0
+                    print ("\n-----Checking USB{} gagal-----\n".format(x))
+                    break
+
+                if times_usb < 10:
+                    times_usb += 1
+                    
+                    # detect usb again
+                    usb_name = usb_detect(x, cek)
+
+        if detected_usb >= total_usb:
+
+            break
 
 # print the result
 print("\narduino main port USB{}".format(arduino_main_port))
@@ -152,7 +154,7 @@ print("arduino sensor depan port USB{}".format(arduino_depan_port))
 print("arduino sensor belakang port USB{}".format(arduino_belakang_port))
 
 # save usb port to usb_port_config.txt
-print("Menyimpan konfigurasi")
+print("Menyimpan konfigurasi....")
 
 f = open("./cache/usb_port_config.txt","w")
 f.write("{} \r\n" .format(arduino_main_port)) #port_arduino_main
@@ -197,8 +199,6 @@ us_kiri_blk = default_num
 us_tengah_blk = default_num
 us_kanan_blk = default_num
 
-#encoder_dpn = 0
-
 width_camera_only = 700
 height_camera_only = int((width_camera_only/1280)*720)
 
@@ -213,8 +213,8 @@ data_belakang = [default_num, default_num, default_num]
 counter_serial = 0
 
 # pemanggilan serial
-subprocess.Popen(["python3", "./serial_arduino_depan.py"], stdout=PIPE, stderr=PIPE)
-subprocess.Popen(["python3", "./serial_arduino_belakang.py"], stdout=PIPE, stderr=PIPE)
+subprocess.Popen(["python3", "./serial_arduino_depan.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+subprocess.Popen(["python3", "./serial_arduino_belakang.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 try:
     # start video stream
@@ -223,7 +223,7 @@ try:
     print("Mengaktifkan kamera ...")
 
     # waktu bagi kamera untuk melakukan "pemanasan"
-    sleep(2.0)
+    time.sleep(2.0)
 
     while(True):
 
