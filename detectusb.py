@@ -25,3 +25,10 @@ def usb_detect(port_number, pesan):
             print("{} tidak terhubung!".format(detect_USB.port))
         
     return decode_usb
+
+
+if __name__ == "__main__":
+    print("Detect USB connection on ROBA\n")
+    print("Example : \n")
+    print("from detectusb import *")
+    print("usb_name = usb_detect(1, cek)")
