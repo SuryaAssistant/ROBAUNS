@@ -1,5 +1,7 @@
 <span align = "center">
-  
+
+ ![Logo](https://github.com/ROBA-UNS/ROBAUNS/blob/v0.9.1-beta/logo/Logo_UNS_1.png)
+
 # ROBA UNS
 
 ### Sedang dalam pengembangan
