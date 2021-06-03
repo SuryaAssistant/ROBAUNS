@@ -184,11 +184,6 @@ status_robot = "diam"
 
 
 #---------------------------Kode Awal---------------------------#
-# warna
-aman = (0, 255, 0)
-bahaya = (0, 0, 255)
-peringatan = (0, 255, 255)
-
 default_num = 10000
 
 us_kiri_dpn = default_num
@@ -204,8 +199,8 @@ height_camera_only = int((width_camera_only/1280)*720)
 
 
 #data serial awal
-data_depan = [0, 0, default_num, default_num, default_num]
-data_belakang = [default_num, default_num, default_num]
+data_depan = [us_kiri_dpn, us_tengah_dpn, us_kanan_dpn]
+data_belakang = [us_kiri_blk, us_tengah_blk, us_kanan_blk]
 
 #---------------------------Operation Code---------------------------#
 
