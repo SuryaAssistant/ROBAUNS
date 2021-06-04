@@ -42,7 +42,7 @@ def command(belakang, depan, kamera):
 def force_stop():
     belakang = belakang_diam()
     depan = depan_diam()
-    kamera = kamera_diam()
+    kamera = kamera_tengah()
 
     stop_kode = command(belakang, depan, kamera)
     stop_command = ("{}\n".format(stop_kode))
