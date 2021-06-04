@@ -65,9 +65,6 @@ void loop() {
       SonarSensor(trigPin3, echoPin3);
       Sensor3 = distance;
 
-      Sensor1 = 100;
-      Sensor2 = 120;
-      Sensor3 = 140;
       //Send ultrasonic value to Raspberry Pi
       Serial.print(Sensor1);
       Serial.print(",");
