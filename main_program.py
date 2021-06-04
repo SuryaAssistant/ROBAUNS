@@ -33,7 +33,8 @@ print("Mulai")
 # Create chace folder
 # to save configuration and sensor data
 cache_folder = "./cache"
-if os.path.exists(cache_folder == False):
+isExist = os.path.exists(cache_folder)
+if isExist == False:
     os. makedirs(cache_folder)
 
 #-----------------------------------------------Serial Protocol-----------------------------------------------#
@@ -58,6 +59,7 @@ def set_usb(stop_or_start):
     f_stop.close()
 #-------------------------------------------End of Local Function-------------------------------------------#
 
+tab_status = 0
 
 #-------------------------------------------Detect Arduino in USB-------------------------------------------#
 #
@@ -80,7 +82,7 @@ def set_usb(stop_or_start):
 # number of Arduino that connect to Raspberry Pi
 total_usb = 3
 detected_usb = 0
-max_port = 10
+max_port = 3
 
 # message comand
 cek = "check"
@@ -326,18 +328,27 @@ try:
         font = cv2.FONT_HERSHEY_SIMPLEX
 
         # info tab
-        cv2.putText(camera_only_frame,'W ~ Maju',(10,height_camera_only-130), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-        cv2.putText(camera_only_frame,'S ~ Mundur',(10,height_camera_only - 110), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-        cv2.putText(camera_only_frame,'A ~ Belok kiri',(10,height_camera_only - 90), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-        cv2.putText(camera_only_frame,'D ~ Belok kanan',(10, height_camera_only - 70), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-        cv2.putText(camera_only_frame,'O ~ Kamera kiri',(10, height_camera_only - 50), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-        cv2.putText(camera_only_frame,'P ~ Kamera kanan',(10, height_camera_only - 30), font, 0.6,(255,255,255),1,cv2.LINE_AA)
-        cv2.putText(camera_only_frame,'Q ~ Exit',(10, height_camera_only - 10), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+        if tab_status == 1:
+            cv2.putText(camera_only_frame,'W ~ Maju',(10,height_camera_only-130), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+            cv2.putText(camera_only_frame,'S ~ Mundur',(10,height_camera_only - 110), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+            cv2.putText(camera_only_frame,'A ~ Belok kiri',(10,height_camera_only - 90), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+            cv2.putText(camera_only_frame,'D ~ Belok kanan',(10, height_camera_only - 70), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+            cv2.putText(camera_only_frame,'O ~ Kamera kiri',(10, height_camera_only - 50), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+            cv2.putText(camera_only_frame,'P ~ Kamera kanan',(10, height_camera_only - 30), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+            cv2.putText(camera_only_frame,'Q ~ Exit',(10, height_camera_only - 10), font, 0.6,(255,255,255),1,cv2.LINE_AA)
 
-        cv2.putText(camera_only_frame,'M ~ Buka pintu',(width_camera_only-155, height_camera_only-30), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+            cv2.putText(camera_only_frame,'M ~ Buka pintu',(width_camera_only-155, height_camera_only-30), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+
+        if tab_status == 0:
+            cv2.putText(camera_only_frame,'T ~ Info tab', (10, height_camera_only - 50), font, 0.6, (255,255,255), 1, cv2.LINE_AA)
+
         cv2.putText(camera_only_frame,'{}'.format(datetime.datetime.now()),(width_camera_only - 222, height_camera_only -10), font, 0.6,(255,255,255),1,cv2.LINE_AA)
 
         cv2.putText(camera_only_frame,'{}'.format(string_kode),(width_camera_only-70, 30), font, 0.4,(255,255,255),1,cv2.LINE_AA)
+
+        # show serial data
+        cv2.putText(camera_only_frame,'{}'.format(data_depan),(10, 20), font, 0.6,(255,255,255),1,cv2.LINE_AA)
+        cv2.putText(camera_only_frame,'{}'.format(data_belakang),(10, 50), font, 0.6,(255,255,255),1,cv2.LINE_AA)
 
         # show image
         # Frame asli
@@ -396,6 +407,12 @@ try:
             print("\n -------Serial port dinonaktifkan-------")
             break
     
+        #---------------TAB INFO----------------
+        elif key == ord("t"):
+            tab_status += 1
+            if tab_status == 2:
+                tab_status = 0
+
         else:
             kode_motor_belakang = belakang_diam()
             kode_motor_depan = depan_diam()
