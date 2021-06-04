@@ -327,6 +327,37 @@ try:
 
         font = cv2.FONT_HERSHEY_SIMPLEX
 
+        # show indicator
+        # WARNING INDICATOR
+        if us_kiri_dpn <= 50 and us_kiri_dpn > 30:
+            cv2.rectangle((camera_only_frame), (0,0), (30,30), color_warning(), -1)
+        if us_tengah_dpn <= 50 and us_tengah_dpn > 30:
+            cv2.rectangle((camera_only_frame), (int(width_camera_only/2)-15,0), (int(width_camera_only/2)+15,30), color_warning(), -1)
+        if us_kanan_dpn <= 50 and us_kanan_dpn > 30:
+            cv2.rectangle((camera_only_frame), (width_camera_only-30,0), (width_camera_only,30), color_warning(), -1)
+
+        if us_kiri_blk <= 50 and us_kiri_blk > 30:
+            cv2.rectangle((camera_only_frame), (0,height_camera_only), (30,height_camera_only-30), color_warning(), -1)
+        if us_tengah_blk <= 50 and us_tengah_blk > 30:
+            cv2.rectangle((camera_only_frame), (int(width_camera_only/2)-15,height_camera_only), (int(width_camera_only/2)+15, height_camera_only-30), color_warning(), -1)
+        if us_kanan_blk <= 50 and us_kanan_blk > 30:
+            cv2.rectangle((camera_only_frame), (width_camera_only-30,height_camera_only), (width_camera_only, height_camera_only-30), color_warning(), -1)
+
+        # DANGER INDICATOR
+        if us_kiri_dpn <= 30:
+            cv2.rectangle((camera_only_frame), (0,0), (30,30), color_danger(), -1)
+        if us_tengah_dpn <= 30:
+            cv2.rectangle((camera_only_frame), (int(width_camera_only/2)-15,0), (int(width_camera_only/2)+15,30), color_danger(), -1)
+        if us_kanan_dpn <= 30:
+            cv2.rectangle((camera_only_frame), (width_camera_only-30,0), (width_camera_only,30), color_danger(), -1)
+
+        if us_kiri_blk <= 30:
+            cv2.rectangle((camera_only_frame), (0, height_camera_only), (30,height_camera_only-30), color_danger(), -1)
+        if us_tengah_blk <= 30:
+            cv2.rectangle((camera_only_frame), (int(width_camera_only/2)-15,height_camera_only), (int(width_camera_only/2)+15, height_camera_only-30), color_danger(), -1)
+        if us_kanan_blk <= 30:
+            cv2.rectangle((camera_only_frame), (width_camera_only-30,height_camera_only), (width_camera_only, height_camera_only-30), color_danger(), -1)
+
         # info tab
         if tab_status == 1:
             cv2.putText(camera_only_frame,'W ~ Maju',(10,height_camera_only-130), font, 0.6,(255,255,255),1,cv2.LINE_AA)
