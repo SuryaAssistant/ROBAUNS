@@ -1,26 +1,27 @@
+# Color set as (Blu,e Green, Red)
 def color_primary():
-    return (0, 123, 255)
+    return (255, 123, 0)
 
 def color_secondary():
-    return (108,117,125)
+    return (125,117,108)
 
 def color_danger():
-    return (220,53,69)
+    return (69,53,220)
 
 def color_success():
-    return (40, 167, 69)
+    return (69, 167, 40)
 
 def color_warning():
-    return (255, 193, 7)
+    return (7, 193, 255)
 
 def color_info():
-    return (23, 162, 184)
+    return (184, 162, 23)
 
 def color_light():
-    return (248, 249, 250)
+    return (250, 249, 248)
 
 def color_dark():
-    return (52, 58, 64)
+    return (64, 58, 52)
 
 def color_white():
     return (255, 255, 255)
